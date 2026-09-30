@@ -1,0 +1,31 @@
+{
+  "name": "mazate-entregas",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.14"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @mazate/backend --filter @mazate/frontend dev",
+    "configurar": "pnpm --filter @mazate/backend configurar",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:migrate": "pnpm --filter @mazate/backend db:migrate",
+    "admin:create": "pnpm --filter @mazate/backend admin:create",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0",
+    "exceljs": "^4.4.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  },
+  "type": "module"
+}

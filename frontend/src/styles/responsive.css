@@ -1,0 +1,275 @@
+@media (min-width: 1600px) {
+  .main-content {
+    padding: 44px 48px;
+  }
+  .topbar {
+    padding-inline: 48px;
+  }
+}
+@media (max-width: 1250px) {
+  .workspace {
+    grid-template-columns: 222px minmax(0, 1fr);
+  }
+  .main-content {
+    padding: 28px;
+  }
+  .topbar {
+    padding: 0 28px;
+  }
+  .topbar-right {
+    gap: 13px;
+  }
+  .point-label {
+    display: none;
+  }
+  .attention-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .activity-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 25px;
+  }
+  .empty-small {
+    padding: 25px;
+  }
+  .filters-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .stat-card {
+    padding: 20px;
+  }
+  .stat-icon {
+    width: 38px;
+    height: 38px;
+  }
+  .assignment-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .assignment-form > .button {
+    justify-self: start;
+  }
+  .column-options {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .workspace {
+    display: block;
+  }
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    width: 244px;
+    transition: left 0.2s;
+    height: 100dvh;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: #092c4666;
+    z-index: 20;
+  }
+  .mobile-toggle {
+    display: grid;
+  }
+  .topbar {
+    height: 83px;
+    gap: 15px;
+    padding: 0 20px;
+  }
+  .campaign-picker {
+    margin-right: auto;
+  }
+  .topbar-right .connection span {
+    display: none;
+  }
+  .main-content {
+    padding: 26px 20px;
+  }
+  .page-heading {
+    align-items: flex-start;
+  }
+  .page-heading > .button {
+    flex-shrink: 0;
+  }
+  .stats-grid {
+    gap: 12px;
+  }
+  .stat-card strong {
+    font-size: 1.7rem;
+  }
+  .stat-card span:not(.stat-icon) {
+    font-size: 0.78rem;
+  }
+  .stat-icon {
+    display: none;
+  }
+  .auth-brand {
+    padding: 45px 35px;
+  }
+  .auth-content {
+    padding: 35px;
+  }
+  .auth-brand h1 {
+    font-size: 2.7rem;
+  }
+  .auth-brand small {
+    font-size: 0.75rem;
+  }
+  .campaign-grid {
+    gap: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .main-content {
+    padding: 24px 16px;
+  }
+  .topbar {
+    padding: 0 13px;
+  }
+  .page-heading {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .page-heading p {
+    font-size: 0.9rem;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .stats-grid {
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 15px 12px;
+  }
+  .stat-card span:not(.stat-icon) {
+    font-size: 0.77rem;
+    line-height: 1.4;
+    display: block;
+  }
+  .stat-card strong {
+    font-size: 1.5rem;
+    margin-top: 10px;
+  }
+  .stack {
+    gap: 20px;
+  }
+  .dpi-form {
+    flex-direction: column;
+  }
+  .dpi-form > .button {
+    min-height: 49px;
+  }
+  .lookup-empty {
+    min-height: 260px;
+    padding: 35px 5px 20px;
+  }
+  .search-panel > .section-title {
+    align-items: flex-start;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid div:last-child {
+    grid-column: auto;
+  }
+  .activity-list {
+    grid-template-columns: 1fr;
+  }
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .filters-grid > .field:first-child {
+    grid-column: 1/-1;
+  }
+  .filters-grid > .button {
+    align-self: end;
+  }
+  .table-panel {
+    padding: 0;
+  }
+  .table-toolbar {
+    padding: 18px;
+    flex-wrap: wrap;
+  }
+  .pagination {
+    padding: 12px 8px;
+  }
+  .pagination > .button {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+  .form-grid,
+  .campaign-grid,
+  .assignment-form,
+  .column-options {
+    grid-template-columns: 1fr;
+  }
+  .assignment-form > .button {
+    width: 100%;
+  }
+  .dialog {
+    padding: 22px;
+  }
+  .steps {
+    gap: 5px;
+  }
+  .steps li {
+    padding: 11px 3px;
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+  .steps li > span {
+    width: 24px;
+    height: 24px;
+  }
+  .upload-panel {
+    padding: 42px 22px;
+  }
+  .sample-person {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    padding: 30px;
+    gap: 34px;
+  }
+  .auth-brand > div:nth-child(2) {
+    display: none;
+  }
+  .auth-brand > small {
+    display: none;
+  }
+  .auth-content {
+    padding: 42px 25px;
+  }
+  .login-card {
+    max-width: 420px;
+  }
+  .login-card h2 {
+    font-size: 1.7rem;
+  }
+  .key-hint {
+    display: none;
+  }
+  .point-list {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
