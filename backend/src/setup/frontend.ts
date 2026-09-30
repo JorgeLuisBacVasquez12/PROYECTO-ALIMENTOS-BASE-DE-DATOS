@@ -3,12 +3,19 @@ import { resolve } from "node:path";
 import { parse } from "dotenv";
 import { SetupError } from "./errors.js";
 export function frontendEnvironment(directory: string, backendUrl: string) {
+  const mode =
+    process.env.FRONTEND_MODE ||
+    (process.env.NODE_ENV === "production" ? "production" : "development");
+  if (mode === "local" || !/^[a-zA-Z0-9_-]+$/.test(mode))
+    throw new SetupError(
+      "FRONTEND_MODE debe ser un modo válido de Vite, por ejemplo development, production o staging.",
+    );
   const values: Record<string, string> = {};
   for (const name of [
     ".env",
     ".env.local",
-    ".env.development",
-    ".env.development.local",
+    `.env.${mode}`,
+    `.env.${mode}.local`,
   ]) {
     const path = resolve(directory, name);
     if (existsSync(path)) Object.assign(values, parse(readFileSync(path)));
@@ -24,7 +31,7 @@ export function frontendEnvironment(directory: string, backendUrl: string) {
     );
   if (!values.VITE_SUPABASE_URL || !values.VITE_SUPABASE_ANON_KEY)
     throw new SetupError(
-      "Falta VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY en frontend/.env para verificar el acceso.",
+      `Falta VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY en la configuración del frontend (modo ${mode}) para verificar el acceso.`,
     );
   return values;
 }

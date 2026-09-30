@@ -4,23 +4,29 @@ Esta rama corrige el acceso inicial y completa la administración de usuarios. C
 
 ## Si ya tienes el repositorio en tu Mac
 
-Detén frontend y backend con Ctrl+C. Desde la carpeta principal del repositorio, donde están `frontend`, `backend` y `package.json`, ejecuta uno por uno:
+Detén frontend y backend con Ctrl+C. Desde `frontend`, `backend` o la raíz de **la misma copia del repositorio**, ejecuta este bloque. Primero te sitúa en la raíz; cada paso se ejecuta únicamente si el anterior terminó bien:
 
 ```bash
-git fetch origin
-git switch --track origin/fix/admin-accesos
-pnpm install --frozen-lockfile
-pnpm admin:repair
+cd "$(git rev-parse --show-toplevel)" &&
+git fetch origin &&
+git switch fix/admin-accesos &&
+git pull --ff-only origin fix/admin-accesos &&
+pnpm install --frozen-lockfile &&
+pnpm admin:repair &&
 pnpm dev
 ```
 
-Si la rama ya existe en tu Mac, usa `git switch fix/admin-accesos` y `git pull --ff-only` en lugar de crearla otra vez. Si Git avisa de cambios locales, consérvalos antes de cambiar de rama; no uses `reset --hard` para saltar ese aviso.
+`git switch fix/admin-accesos` usa la rama existente o la crea a partir de `origin/fix/admin-accesos`. Si Git avisa de cambios locales, consérvalos antes de cambiar de rama; no uses `reset --hard` para saltar ese aviso. Un `git pull` estando en `main` no incorpora un PR todavía abierto.
 
-`pnpm admin:repair` lee `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD` de `backend/.env`; pide los datos que falten. Usa el correo y la contraseña con los que quieres entrar al programa. Si PostgreSQL rechaza su conexión, solicita por separado la contraseña de la base de datos, con entrada oculta.
+`pnpm admin:repair` funciona desde la raíz, `frontend` y `backend`. Siempre usa `backend/.env` de esa copia y muestra su ruta. Lee `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD`; pide los datos que falten. Las variables de la terminal tienen prioridad sobre el archivo. Ajusta esos valores al correo y la contraseña con los que quieres entrar. Puedes comprobar que tienes la versión corregida con `pnpm admin:repair --help`.
 
-El comando crea el administrador si no existe, recupera un perfil faltante o restablece la contraseña del administrador activo indicado. Comprueba que frontend y backend apunten al mismo proyecto y prueba el inicio de sesión con la clave pública del frontend. Al terminar correctamente muestra **ACCESO VERIFICADO**. No transforma operadores en administradores ni reactiva cuentas deshabilitadas.
+Si PostgreSQL rechaza su conexión, solicita por separado la contraseña de la base de datos, con entrada oculta.
 
-Abre http://localhost:5173 e inicia sesión con esos datos. La contraseña de PostgreSQL conecta con la base de datos; la contraseña del administrador sirve para entrar al programa.
+El comando crea el administrador si no existe, recupera un perfil faltante o restablece la contraseña del administrador activo indicado. Comprueba que frontend y backend apunten al mismo proyecto, prueba el inicio de sesión con la clave pública del frontend y confirma que exista un perfil administrador activo. Solo entonces muestra **ACCESO VERIFICADO**. No transforma operadores en administradores ni reactiva cuentas deshabilitadas.
+
+`pnpm dev` desde la raíz inicia frontend y backend juntos. Abre http://127.0.0.1:5173 e inicia sesión con esos datos. El botón del ojo permite mostrar u ocultar la contraseña sin enviar el formulario. La contraseña de PostgreSQL conecta con la base de datos; la contraseña del administrador sirve para entrar al programa.
+
+Para una instalación de producción, usa `FRONTEND_MODE=production pnpm admin:repair`. Ese modo lee también `frontend/.env.production` y `frontend/.env.production.local`, en lugar de los archivos de desarrollo. Si `NODE_ENV=production`, el modo predeterminado ya es `production`. Para un frontend compilado con `vite build --mode staging`, usa `FRONTEND_MODE=staging`. Esto también se aplica a `pnpm configurar`.
 
 Si todavía utilizas el ZIP anterior sin Git, descarga esta rama, copia tus dos `.env` a las carpetas correspondientes y ejecuta los tres comandos `pnpm` anteriores en la nueva carpeta. Conserva también cualquier certificado al que apunte `DATABASE_SSL_CA_FILE`.
 

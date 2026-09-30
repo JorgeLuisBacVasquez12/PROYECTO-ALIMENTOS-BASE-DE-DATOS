@@ -64,7 +64,9 @@
     "passwordHelp": "Utiliza al menos 12 caracteres.",
     "passwordMismatch": "Las contraseñas no coinciden.",
     "passwordSaved": "Contraseña actualizada.",
-    "sessionExpired": "Tu sesión terminó. Inicia sesión nuevamente."
+    "sessionExpired": "Tu sesión terminó. Inicia sesión nuevamente.",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "connection": {
     "live": "Actualización en vivo",

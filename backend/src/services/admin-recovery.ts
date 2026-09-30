@@ -73,5 +73,13 @@ export async function repairAdministrator(
     throw new SetupError(
       "La verificación de acceso devolvió otra cuenta. Revisa el proyecto de Supabase.",
     );
+  const verifiedProfile = await db.query(
+    "select id from app.profiles where id=$1 and role='admin' and active",
+    [id],
+  );
+  if (!verifiedProfile.rows.length)
+    throw new SetupError(
+      "La contraseña fue verificada, pero la cuenta no tiene un perfil administrador activo. Revisa su estado antes de entrar.",
+    );
   return { id, email: body.email, created: !existing };
 }

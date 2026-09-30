@@ -27,6 +27,32 @@
 .field textarea {
   resize: vertical;
 }
+.password-control {
+  position: relative;
+}
+.password-control input {
+  padding-right: 52px;
+}
+.password-toggle {
+  position: absolute;
+  inset: 1px 2px 1px auto;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.password-toggle:hover {
+  background: #edf4fa;
+  color: var(--blue);
+}
+.password-toggle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -3px;
+}
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

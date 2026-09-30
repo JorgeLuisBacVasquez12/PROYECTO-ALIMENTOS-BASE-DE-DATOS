@@ -110,4 +110,14 @@ describe("administrator recovery", () => {
     );
     expect(auth.reset).not.toHaveBeenCalled();
   });
+  it("does not claim successful access if the profile was disabled during verification", async () => {
+    const { db, auth } = await fixture({ role: "admin", active: true });
+    auth.verify.mockImplementation(async () => {
+      await db.query("update app.profiles set active=false where id=$1", [id]);
+      return id;
+    });
+    await expect(repairAdministrator(db, auth, input)).rejects.toThrow(
+      "perfil administrador activo",
+    );
+  });
 });
