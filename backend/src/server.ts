@@ -32,6 +32,13 @@ const app = await createApp({
       const { error } = await auth.auth.admin.deleteUser(id);
       if (error) throw new AppError("USER_CLEANUP_FAILED", 500);
     },
+    async resetPassword(id, password) {
+      const { error } = await auth.auth.admin.updateUserById(id, {
+        password,
+        email_confirm: true,
+      });
+      if (error) throw new AppError("PASSWORD_RESET_FAILED", 502);
+    },
   },
 });
 await app.listen({ port: config.PORT, host: config.HOST });

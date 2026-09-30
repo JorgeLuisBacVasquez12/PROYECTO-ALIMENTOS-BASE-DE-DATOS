@@ -64,7 +64,9 @@
     "passwordHelp": "Utiliza al menos 12 caracteres.",
     "passwordMismatch": "Las contraseñas no coinciden.",
     "passwordSaved": "Contraseña actualizada.",
-    "sessionExpired": "Tu sesión terminó. Inicia sesión nuevamente."
+    "sessionExpired": "Tu sesión terminó. Inicia sesión nuevamente.",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "connection": {
     "live": "Actualización en vivo",
@@ -203,8 +205,16 @@
     "passwordHelp": "Al menos 12 caracteres. Compártela con la persona por un canal privado.",
     "disable": "Desactivar",
     "enable": "Activar",
-    "userCreated": "Usuario creado. Asígnalo a una jornada para que pueda atender.",
-    "confirmStatus": "¿Cambiar el acceso de esta persona?"
+    "userCreated": "Acceso creado. Si asignaste jornada y punto, la persona ya puede atender cuando la jornada esté activa.",
+    "confirmStatus": "¿Cambiar el acceso de esta persona?",
+    "resetPassword": "Restablecer contraseña",
+    "passwordSaved": "Contraseña restablecida. Comparte la nueva contraseña con la persona por un canal privado.",
+    "assignPoint": "Asignar punto",
+    "assignmentCampaign": "Jornada de trabajo",
+    "assignLater": "Asignar después",
+    "unassigned": "Sin asignación",
+    "assignmentSaved": "Jornada y punto actualizados.",
+    "statusSaved": "Acceso actualizado."
   },
   "audit": {
     "title": "Historial de acciones",
@@ -220,7 +230,10 @@
     "user.create": "Usuario creado",
     "user.status": "Acceso actualizado",
     "point.create": "Punto creado",
-    "report.export": "Reporte exportado"
+    "report.export": "Reporte exportado",
+    "user.password_reset": "Contraseña restablecida",
+    "admin.bootstrap": "Administrador inicial creado",
+    "admin.password_recovery": "Acceso del administrador recuperado"
   },
   "errors": {
     "UNAUTHORIZED": "Tu sesión venció. Vuelve a iniciar sesión.",
@@ -253,6 +266,9 @@
     "CANNOT_DISABLE_SELF": "No puedes desactivar tu propia cuenta.",
     "USER_CREATE_FAILED": "No se pudo crear la cuenta. Comprueba si el correo ya está registrado.",
     "USER_CLEANUP_FAILED": "No se completó la creación. El administrador debe revisar la cuenta en Supabase.",
-    "EXPORT_TOO_LARGE": "El reporte es muy grande. Aplica más filtros antes de exportar."
+    "EXPORT_TOO_LARGE": "El reporte es muy grande. Aplica más filtros antes de exportar.",
+    "USE_MY_ACCOUNT": "Para cambiar tu contraseña, abre Mi cuenta.",
+    "USER_INACTIVE": "Activa primero el acceso de esta persona.",
+    "PASSWORD_RESET_FAILED": "No se pudo restablecer la contraseña. Comprueba los requisitos de Supabase e intenta nuevamente."
   }
 }

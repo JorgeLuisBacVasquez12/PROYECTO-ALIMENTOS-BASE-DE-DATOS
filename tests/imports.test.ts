@@ -63,7 +63,11 @@ beforeAll(async () => {
     db: database.db,
     config: testConfig,
     verify: async (token) => (token === ids.admin ? token : null),
-    users: { create: async () => randomUUID(), remove: async () => {} },
+    users: {
+      create: async () => randomUUID(),
+      remove: async () => {},
+      resetPassword: async () => {},
+    },
   });
 });
 afterAll(async () => {

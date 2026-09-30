@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabase";
 import { config } from "../config/app";
 import { Input } from "../components/ui/Field";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import { Button } from "../components/ui/Button";
 export function LoginPage() {
   const { t } = useTranslation();
@@ -56,10 +57,9 @@ export function LoginPage() {
             autoComplete="username"
             required
           />
-          <Input
+          <PasswordInput
             label={t("common.password")}
             name="password"
-            type="password"
             autoComplete="current-password"
             required
           />

@@ -20,7 +20,11 @@ beforeAll(async () => {
     config: testConfig,
     verify: async (token) =>
       Object.values(ids).includes(token) ? token : null,
-    users: { create: async () => randomUUID(), remove: async () => {} },
+    users: {
+      create: async () => randomUUID(),
+      remove: async () => {},
+      resetPassword: async () => {},
+    },
   });
 });
 afterAll(async () => {

@@ -2,11 +2,13 @@
 
 Aplicación web para consultar beneficiarios por DPI, registrar una sola entrega por persona y jornada, y conocer el punto, fecha y responsable. Frontend React + TypeScript separado del backend Fastify + TypeScript. PostgreSQL y autenticación en Supabase. Gestor de paquetes: **pnpm**.
 
-Para esta copia configurada, empieza por **[EMPEZAR_AQUI.md](EMPEZAR_AQUI.md)**. La guía general es **[INICIO_RAPIDO.md](INICIO_RAPIDO.md)**.
+Para actualizar o recuperar el administrador, empieza por **[EMPEZAR_AQUI.md](EMPEZAR_AQUI.md)**. La guía general es **[INICIO_RAPIDO.md](INICIO_RAPIDO.md)**.
 
 ## Lo que incluye
 
 - Login individual, roles administrador/operador y asignación de punto por jornada.
+- Creación de accesos con asignación inmediata, restablecimiento de contraseñas y activación/desactivación desde Puntos y equipo.
+- Recuperación del administrador con `pnpm admin:repair` y verificación del inicio de sesión.
 - Consulta exacta por DPI de 13 dígitos. Buscar no registra una entrega.
 - Confirmación explícita, validación en servidor e índice único global por jornada/persona.
 - Reintentos con identificador de solicitud: la misma petición nunca crea otra entrega.
@@ -57,7 +59,7 @@ Las importaciones se permiten solo en jornadas en borrador. Una vez activa, el p
 
 Se requiere conexión al servidor para confirmar entregas. Las pantallas no autorizan entregas offline ni las dejan en una cola local. “Disponible” es una consulta; solo **“Entrega registrada”** después de confirmar autoriza la entrega física.
 
-Esta copia local incluye las credenciales suministradas por el solicitante en los `.env`, excluidos de Git, y el certificado proporcionado. No contiene padrón municipal real ni personas precargadas. El diseño utiliza un icono de edificio institucional, no un escudo municipal inventado. Puedes definir el logotipo autorizado mediante `VITE_LOGO_URL`.
+El repositorio incluye ejemplos de configuración y el certificado raíz público de Supabase. Las credenciales se guardan en tus `.env`, excluidos de Git. No contiene padrón municipal real ni personas precargadas. El diseño utiliza un icono de edificio institucional, no un escudo municipal inventado. Puedes definir el logotipo autorizado mediante `VITE_LOGO_URL`.
 
 ## Alcance de la comprobación
 

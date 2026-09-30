@@ -5,6 +5,7 @@ import type { Database } from "../db/database.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { audit, lockAdmin } from "../services/access.js";
 import { AppError } from "../lib/errors.js";
+import { assignUser } from "../services/assignments.js";
 export function campaignRoutes(app: FastifyInstance, db: Database) {
   app.get("/api/bootstrap", async (request) => {
     const [campaigns, points] = await Promise.all([
@@ -88,18 +89,7 @@ export function campaignRoutes(app: FastifyInstance, db: Database) {
     const { userId, pointId } = assignmentSchema.parse(request.body);
     await db.transaction(async (tx) => {
       await lockAdmin(tx, request.profile.id);
-      await tx.query(
-        "insert into app.assignments(campaign_id,user_id,point_id) values($1,$2,$3) on conflict(campaign_id,user_id) do update set point_id=excluded.point_id",
-        [id, userId, pointId],
-      );
-      await audit(tx, request.profile.id, "assignment.set", id, {
-        userId,
-        pointId,
-      });
-      await tx.query(
-        "insert into public.delivery_events(campaign_id,kind) values($1,'campaign')",
-        [id],
-      );
+      await assignUser(tx, request.profile.id, id, userId, pointId);
     });
     return { ok: true };
   });

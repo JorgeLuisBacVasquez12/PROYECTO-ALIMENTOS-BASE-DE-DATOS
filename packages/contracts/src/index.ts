@@ -22,13 +22,20 @@ export const pointSchema = z
 export const assignmentSchema = z
   .object({ userId: uuid, pointId: uuid })
   .strict();
+export const passwordSchema = z.string().min(12).max(128);
 export const userSchema = z
   .object({
-    email: z.email().max(254),
+    email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
     displayName: z.string().trim().min(3).max(100),
     role: z.enum(["admin", "operator"]),
-    password: z.string().min(12).max(128),
+    password: passwordSchema,
   })
+  .strict();
+export const createUserSchema = userSchema.extend({
+  assignment: z.object({ campaignId: uuid, pointId: uuid }).strict().optional(),
+});
+export const resetPasswordSchema = z
+  .object({ password: passwordSchema })
   .strict();
 export const mappingSchema = z
   .object({
@@ -51,6 +58,15 @@ export interface Profile {
   display_name: string;
   role: Role;
   active: boolean;
+}
+export interface TeamUser extends Profile {
+  email: string | null;
+  assignments: {
+    campaign_id: string;
+    campaign_name: string;
+    point_id: string;
+    point_name: string;
+  }[];
 }
 export interface Point {
   id: string;

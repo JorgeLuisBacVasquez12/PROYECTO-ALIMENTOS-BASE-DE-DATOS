@@ -28,9 +28,9 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: {
         VITE_API_URL: "http://127.0.0.1:4901/api",
-        VITE_SUPABASE_URL: "http://127.0.0.1:4901",
+        VITE_SUPABASE_URL: "http://127.0.0.1:4902",
         VITE_SUPABASE_ANON_KEY: "test-public-key",
-        VITE_FALLBACK_REFRESH_MS: "15000",
+        VITE_FALLBACK_REFRESH_MS: "5000",
       },
     },
   ],

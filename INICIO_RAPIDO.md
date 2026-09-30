@@ -1,6 +1,6 @@
 # Inicio rápido en Mac, Windows o Linux
 
-Si descargaste la copia con configuración personal incluida, usa primero `EMPEZAR_AQUI.md` y `pnpm configurar`; conserva sus `.env` en lugar de reemplazarlos por los ejemplos vacíos.
+Si ya tienes una instalación y necesitas recuperar el acceso del administrador, empieza por `EMPEZAR_AQUI.md`. Conserva tus `.env` en lugar de reemplazarlos por los ejemplos vacíos.
 
 ## 1. Requisitos
 
@@ -70,7 +70,7 @@ pnpm admin:create
 
 El segundo comando solicita correo, nombre y contraseña inicial; la contraseña se captura oculta. Usa un correo que todavía no esté registrado en ese proyecto. Las siguientes cuentas se crean desde **Puntos y equipo**.
 
-También puedes usar `pnpm configurar`, que comprueba primero la conexión, solicita de forma oculta la contraseña PostgreSQL si falta o fue rechazada, aplica las migraciones y crea la cuenta. `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD` permiten proporcionar el administrador mediante el `.env`. Las variables de administrador solo se consumen en estos comandos, nunca en el frontend. Para cargar el certificado desde un archivo usa `DATABASE_SSL_CA_FILE`, con una ruta relativa a `backend`; `DATABASE_SSL_CA` tiene prioridad si contiene un PEM.
+También puedes usar `pnpm configurar`, que comprueba primero la conexión, solicita de forma oculta la contraseña PostgreSQL si falta o fue rechazada, aplica las migraciones y crea la cuenta. `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD` permiten proporcionar el administrador mediante el `.env`. `pnpm admin:repair` permite crear o recuperar el administrador indicado y prueba el inicio de sesión. `pnpm configurar` también verifica el acceso y avisa si hace falta restablecer una contraseña existente. Las variables de administrador solo se consumen en estos comandos, nunca en el frontend. Para cargar el certificado desde un archivo usa `DATABASE_SSL_CA_FILE`, con una ruta relativa a `backend`; `DATABASE_SSL_CA` tiene prioridad si contiene un PEM.
 
 El comando de migración es transaccional y registra qué archivos ya aplicó. Las migraciones aplicadas no deben editarse: crea otra migración para cambios futuros. También puedes ejecutar los SQL en orden desde Supabase SQL Editor, pero elige **una sola vía**; el editor manual no registra el historial del comando.
 

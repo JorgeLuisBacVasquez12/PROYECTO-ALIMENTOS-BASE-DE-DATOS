@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "configurar": "node --import tsx src/scripts/setup.ts",
     "db:migrate": "node --import tsx src/scripts/migrate.ts",
-    "admin:create": "node --import tsx src/scripts/create-admin.ts"
+    "admin:create": "node --import tsx src/scripts/create-admin.ts",
+    "admin:repair": "node ../scripts/admin-repair.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
