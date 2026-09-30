@@ -25,7 +25,7 @@ export function CampaignAssignments({ campaignId }: { campaignId: string }) {
         method: "PUT",
         body: JSON.stringify(body),
       }),
-    ["assignments", "bootstrap"],
+    ["assignments", "bootstrap", "users"],
   );
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

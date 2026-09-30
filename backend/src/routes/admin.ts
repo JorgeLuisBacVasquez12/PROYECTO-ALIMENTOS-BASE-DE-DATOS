@@ -1,13 +1,20 @@
 import type { FastifyInstance } from "fastify";
-import { pointSchema, userSchema, uuid } from "@mazate/contracts";
+import {
+  pointSchema,
+  createUserSchema,
+  resetPasswordSchema,
+  uuid,
+} from "@mazate/contracts";
 import { z } from "zod";
 import type { Database } from "../db/database.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { audit, lockAdmin } from "../services/access.js";
 import { AppError } from "../lib/errors.js";
+import { assignUser } from "../services/assignments.js";
 export interface UserProvisioner {
   create(email: string, password: string): Promise<string>;
   remove(id: string): Promise<void>;
+  resetPassword(id: string, password: string): Promise<void>;
 }
 export function adminRoutes(
   app: FastifyInstance,
@@ -18,7 +25,10 @@ export function adminRoutes(
     requireAdmin(request.profile);
     return (
       await db.query(
-        "select id,display_name,role,active from app.profiles order by display_name",
+        `select p.id,p.display_name,p.role,p.active,u.email,
+        coalesce((select jsonb_agg(jsonb_build_object('campaign_id',c.id,'campaign_name',c.name,'point_id',pt.id,'point_name',pt.name) order by c.created_at desc)
+          from app.assignments a join app.campaigns c on c.id=a.campaign_id join app.points pt on pt.id=a.point_id where a.user_id=p.id and c.status <> 'closed'), '[]'::jsonb) assignments
+        from app.profiles p join auth.users u on u.id=p.id order by p.display_name`,
       )
     ).rows;
   });
@@ -27,7 +37,7 @@ export function adminRoutes(
     { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (request, reply) => {
       requireAdmin(request.profile);
-      const body = userSchema.parse(request.body);
+      const body = createUserSchema.parse(request.body);
       const id = await users.create(body.email, body.password);
       try {
         await db.transaction(async (tx) => {
@@ -37,6 +47,14 @@ export function adminRoutes(
             [id, body.displayName, body.role],
           );
           await audit(tx, request.profile.id, "user.create", id);
+          if (body.assignment)
+            await assignUser(
+              tx,
+              request.profile.id,
+              body.assignment.campaignId,
+              id,
+              body.assignment.pointId,
+            );
         });
       } catch (error) {
         await users.remove(id);
@@ -44,6 +62,28 @@ export function adminRoutes(
       }
       reply.code(201);
       return { id };
+    },
+  );
+  app.post(
+    "/api/users/:id/password",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request) => {
+      requireAdmin(request.profile);
+      const id = uuid.parse((request.params as { id: string }).id);
+      const { password } = resetPasswordSchema.parse(request.body);
+      if (id === request.profile.id) throw new AppError("USE_MY_ACCOUNT", 400);
+      await db.transaction(async (tx) => {
+        await lockAdmin(tx, request.profile.id);
+        const target = await tx.query(
+          "select active from app.profiles where id=$1 for update",
+          [id],
+        );
+        if (!target.rows.length) throw new AppError("NOT_FOUND", 404);
+        if (!target.rows[0]!.active) throw new AppError("USER_INACTIVE", 409);
+        await audit(tx, request.profile.id, "user.password_reset", id);
+        await users.resetPassword(id, password);
+      });
+      return { ok: true };
     },
   );
   app.patch("/api/users/:id", async (request) => {

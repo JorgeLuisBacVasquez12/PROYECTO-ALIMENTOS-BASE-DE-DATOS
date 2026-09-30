@@ -16,7 +16,8 @@
     "db:migrate": "pnpm --filter @mazate/backend db:migrate",
     "admin:create": "pnpm --filter @mazate/backend admin:create",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "admin:repair": "pnpm --filter @mazate/backend admin:repair"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

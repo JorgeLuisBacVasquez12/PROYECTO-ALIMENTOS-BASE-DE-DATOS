@@ -309,3 +309,18 @@ td .button {
 .sample-person span {
   color: var(--muted);
 }
+
+.team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 180px;
+}
+.team-table {
+  min-width: 900px;
+}
+.team-table td:nth-child(2),
+.team-table td:nth-child(4) {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}

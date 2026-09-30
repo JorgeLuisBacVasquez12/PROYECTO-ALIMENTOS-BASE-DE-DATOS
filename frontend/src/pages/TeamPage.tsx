@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Profile } from "@mazate/contracts";
+import type { Profile, TeamUser } from "@mazate/contracts";
 import { api, post } from "../lib/api";
 import { useWorkspace } from "../hooks/useWorkspace";
 import { useMutationAction } from "../hooks/useMutationAction";
@@ -11,16 +11,22 @@ import { Input } from "../components/ui/Field";
 import { Button } from "../components/ui/Button";
 import { Dialog } from "../components/ui/Dialog";
 import { CreateUser } from "../features/admin/CreateUser";
+import { ResetPassword } from "../features/admin/ResetPassword";
+import { AssignUser } from "../features/admin/AssignUser";
 export default function TeamPage() {
   const { t } = useTranslation();
   const { points, profile } = useWorkspace();
   const [userOpen, setUserOpen] = useState(false);
   const [pointOpen, setPointOpen] = useState(false);
-  const [created, setCreated] = useState(false);
+  const [message, setMessage] = useState("");
+  const [passwordTarget, setPasswordTarget] = useState<TeamUser | null>(null);
+  const [assignmentTarget, setAssignmentTarget] = useState<TeamUser | null>(
+    null,
+  );
   const [target, setTarget] = useState<Profile | null>(null);
   const users = useQuery({
     queryKey: ["users"],
-    queryFn: () => api<Profile[]>("/users"),
+    queryFn: () => api<TeamUser[]>("/users"),
   });
   const point = useMutationAction(
     (name: string) => post("/points", { name }),
@@ -48,7 +54,7 @@ export default function TeamPage() {
   return (
     <div className="stack">
       <PageHeader title={t("team.title")} subtitle={t("team.subtitle")} />
-      {created ? <Notice tone="success">{t("team.userCreated")}</Notice> : null}
+      {message ? <Notice tone="success">{t(message)}</Notice> : null}
       <section className="panel stack">
         <div className="section-title">
           <h2>{t("team.points")}</h2>
@@ -82,11 +88,16 @@ export default function TeamPage() {
           </Button>
         </div>
         <ErrorNotice error={users.error} />
-        <div className="table-scroll">
-          <table>
+        <div
+          className="table-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label={t("team.users")}
+        >
+          <table className="team-table">
             <thead>
               <tr>
-                {["name", "role", "status", "actions"].map((key) => (
+                {["name", "role", "point", "status", "actions"].map((key) => (
                   <th key={key}>{t(`common.${key}`)}</th>
                 ))}
               </tr>
@@ -94,8 +105,21 @@ export default function TeamPage() {
             <tbody>
               {users.data?.map((u) => (
                 <tr key={u.id}>
-                  <td className="name-cell">{u.display_name}</td>
+                  <td className="name-cell">
+                    <strong>{u.display_name}</strong>
+                    <div className="muted">{u.email ?? "—"}</div>
+                  </td>
                   <td>{t(`common.${u.role}`)}</td>
+                  <td>
+                    {u.assignments.length
+                      ? u.assignments.map((a) => (
+                          <div key={a.campaign_id}>
+                            <strong>{a.point_name}</strong>
+                            <div className="muted">{a.campaign_name}</div>
+                          </div>
+                        ))
+                      : t("team.unassigned")}
+                  </td>
                   <td>
                     <span
                       className={`badge ${u.active ? "success" : "neutral"}`}
@@ -104,17 +128,35 @@ export default function TeamPage() {
                     </span>
                   </td>
                   <td>
-                    {u.id !== profile.id ? (
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          status.reset();
-                          setTarget(u);
-                        }}
-                      >
-                        {t(u.active ? "team.disable" : "team.enable")}
-                      </Button>
-                    ) : null}
+                    <div className="team-actions">
+                      {u.active ? (
+                        <Button
+                          variant="ghost"
+                          onClick={() => setAssignmentTarget(u)}
+                        >
+                          {t("team.assignPoint")}
+                        </Button>
+                      ) : null}
+                      {u.active && u.id !== profile.id ? (
+                        <Button
+                          variant="ghost"
+                          onClick={() => setPasswordTarget(u)}
+                        >
+                          {t("team.resetPassword")}
+                        </Button>
+                      ) : null}
+                      {u.id !== profile.id ? (
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            status.reset();
+                            setTarget(u);
+                          }}
+                        >
+                          {t(u.active ? "team.disable" : "team.enable")}
+                        </Button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -122,11 +164,27 @@ export default function TeamPage() {
           </table>
         </div>
       </section>
-      <CreateUser
-        open={userOpen}
-        onClose={() => setUserOpen(false)}
-        onCreated={() => setCreated(true)}
-      />
+      {userOpen ? (
+        <CreateUser
+          open={userOpen}
+          onClose={() => setUserOpen(false)}
+          onCreated={() => setMessage("team.userCreated")}
+        />
+      ) : null}
+      {passwordTarget ? (
+        <ResetPassword
+          user={passwordTarget}
+          onClose={() => setPasswordTarget(null)}
+          onSaved={() => setMessage("team.passwordSaved")}
+        />
+      ) : null}
+      {assignmentTarget ? (
+        <AssignUser
+          user={assignmentTarget}
+          onClose={() => setAssignmentTarget(null)}
+          onSaved={() => setMessage("team.assignmentSaved")}
+        />
+      ) : null}
       <Dialog
         open={pointOpen}
         title={t("team.newPoint")}
@@ -162,7 +220,10 @@ export default function TeamPage() {
               if (target)
                 void status
                   .mutateAsync(target)
-                  .then(() => setTarget(null))
+                  .then(() => {
+                    setMessage("team.statusSaved");
+                    setTarget(null);
+                  })
                   .catch(() => {});
             }}
           >

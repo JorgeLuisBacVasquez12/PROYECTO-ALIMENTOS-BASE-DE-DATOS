@@ -19,7 +19,7 @@ pnpm format:check
 
 La suite de Vitest usa una base PostgreSQL embebida y verifica, entre otros casos:
 
-- dos confirmaciones concurrentes del mismo DPI: solo una registra la entrega;
+- 30 confirmaciones concurrentes del mismo DPI: solo una registra la entrega;
 - repetición de la misma solicitud mediante `request_id`;
 - bloqueo de una entrega ya registrada desde otro punto;
 - autorización por jornada y asignación de punto;
@@ -30,9 +30,9 @@ La suite de Vitest usa una base PostgreSQL embebida y verifica, entre otros caso
 - ausencia de cuentas nuevas cuando falla PostgreSQL y limpieza de una cuenta recién creada si falla el perfil;
 - contraseñas de PostgreSQL con caracteres especiales en la URL de conexión.
 
-En esta revisión de la configuración pasaron las 17 pruebas de Vitest, la comprobación de tipos y la compilación de frontend y backend. La creación remota en Supabase queda pendiente de una contraseña PostgreSQL válida, que se solicita al ejecutar `pnpm configurar`.
+En esta revisión pasaron **34 pruebas de Vitest**, **4 recorridos de Playwright**, la comprobación de tipos y la compilación de frontend y backend. Incluyen recuperación del administrador, restricciones de perfiles, creación con asignación, restablecimiento y revocación de accesos. No se modificó el Supabase real del usuario; `pnpm admin:repair` ejecuta y verifica la reparación en ese proyecto al correrlo con su configuración.
 
-La suite de Playwright levanta el frontend y un backend de prueba. Recorre la búsqueda en dos puntos, la importación administrativa y una comprobación responsive para móvil. Los datos son ficticios y no sustituyen una prueba contra el Supabase de producción.
+La suite de Playwright levanta el frontend y un backend de prueba. Recorre la búsqueda en dos puntos, la importación administrativa y la vista móvil. El recorrido de accesos crea un operador, inicia sesión, restablece la contraseña, rechaza la anterior, cambia la contraseña desde Mi cuenta, reasigna el punto, bloquea una sesión abierta y reactiva el acceso. Se usa un doble HTTP de Supabase Auth que valida credenciales y una base PostgreSQL embebida: no se valida aquí el servicio remoto de Auth ni el canal Realtime de producción. Los datos son ficticios y no sustituyen una prueba contra el Supabase de producción.
 
 ## Prueba de aceptación con Supabase
 

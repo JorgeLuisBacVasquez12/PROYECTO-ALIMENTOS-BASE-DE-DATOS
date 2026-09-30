@@ -66,7 +66,12 @@ export function Sidebar({
           ))}
       </nav>
       <div className="sidebar-footer">
-        <NavLink to="/account" className="user-profile" onClick={onNavigate}>
+        <NavLink
+          to="/account"
+          className="user-profile"
+          onClick={onNavigate}
+          aria-label={t("nav.account")}
+        >
           <span className="avatar">{initials(profile.display_name)}</span>
           <span>
             <strong>{profile.display_name}</strong>
