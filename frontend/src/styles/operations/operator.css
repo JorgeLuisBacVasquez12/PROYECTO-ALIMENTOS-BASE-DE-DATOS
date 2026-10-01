@@ -1,0 +1,159 @@
+.operator-workspace .topbar {
+  padding-inline: max(24px, calc((100vw - 1100px) / 2));
+}
+.operator-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #40653d;
+}
+.operator-brand strong {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.operator-brand small {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: #7e8a75;
+}
+.signout.compact {
+  width: auto;
+  gap: 7px;
+}
+.operator-workspace .main-content {
+  max-width: 930px;
+  padding: 40px 36px 60px;
+}
+.operator-page {
+  gap: 24px;
+}
+.operator-greeting .eyebrow {
+  margin-bottom: 10px;
+}
+.operator-greeting h1 {
+  font-size: 2.4rem;
+  margin-bottom: 9px;
+}
+.operator-greeting > p {
+  font-size: 0.89rem;
+  color: var(--muted);
+}
+.operator-context {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.operator-context .journey-picker {
+  flex: 1;
+  max-width: 340px;
+}
+.operator-context .point-label {
+  display: flex;
+  font-size: 0.77rem;
+}
+.operator-context > .button {
+  margin-left: auto;
+  padding-inline: 7px;
+  font-size: 0.75rem;
+}
+.operator-search {
+  padding: 32px;
+}
+.search-card-heading {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.search-card-heading h2 {
+  font-size: 1.1rem;
+}
+.search-card-heading p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+.operator-dpi-form > label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 550;
+  margin-bottom: 9px;
+}
+.operator-dpi-form > small {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.72rem;
+}
+.dpi-input input {
+  border-color: #d5decc;
+  background: #fafbf7;
+  min-height: 56px;
+}
+.dpi-input {
+  color: #95a188;
+}
+.operator-dpi-form .button {
+  padding-inline: 25px;
+}
+.lookup-empty {
+  padding: 42px 20px 32px;
+  min-height: 280px;
+}
+.lookup-empty > span {
+  border-radius: 25px;
+  background: #f3f6eb;
+  color: #91a77c;
+}
+.lookup-empty h3 {
+  color: #516544;
+  font-size: 1rem;
+}
+.lookup-empty p {
+  font-size: 0.82rem;
+  max-width: 350px;
+}
+.search-reassurance {
+  border-top: 1px solid #edf0e6;
+  padding-top: 19px;
+  margin-top: 23px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 9px;
+  color: #87967c;
+  font-size: 0.68rem;
+}
+.lookup-result {
+  background: #f5f9ef;
+  border-color: #d7e5c9;
+  border-radius: 14px;
+  padding: 24px;
+}
+.result-heading {
+  color: #547d3c;
+}
+.lookup-result.delivered,
+.lookup-result.notFound {
+  background: #fdf7eb;
+  border-color: #eee0bf;
+}
+.delivered .result-heading,
+.notFound .result-heading {
+  color: #9b7634;
+}
+.person-card {
+  border-color: #e2e9d9;
+}
+.person-symbol {
+  color: #879972;
+  border-color: #e2e9d9;
+}
+.person-card .person-sector {
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+.operator-waiting {
+  margin-top: 4px;
+  padding-block: 60px;
+}

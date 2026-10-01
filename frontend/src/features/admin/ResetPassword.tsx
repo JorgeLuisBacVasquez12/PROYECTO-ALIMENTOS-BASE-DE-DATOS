@@ -4,7 +4,7 @@ import type { TeamUser } from "@mazate/contracts";
 import { post } from "../../lib/api";
 import { useMutationAction } from "../../hooks/useMutationAction";
 import { Dialog } from "../../components/ui/Dialog";
-import { Input } from "../../components/ui/Field";
+import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import { ErrorNotice, Notice } from "../../components/ui/Feedback";
 
@@ -51,20 +51,18 @@ export function ResetPassword({
           <strong>{user.display_name}</strong>
           <p className="muted">{user.email}</p>
         </div>
-        <Input
+        <PasswordInput
           name="password"
           label={t("auth.newPassword")}
-          type="password"
           autoComplete="new-password"
           minLength={12}
           maxLength={128}
           required
           help={t("team.passwordHelp")}
         />
-        <Input
+        <PasswordInput
           name="repeat"
           label={t("auth.repeatPassword")}
-          type="password"
           autoComplete="new-password"
           minLength={12}
           maxLength={128}

@@ -1,0 +1,89 @@
+/* A quiet, warm workspace for community delivery teams. */
+:root {
+  --navy: #183e32;
+  --navy-deep: #123328;
+  --blue: #276749;
+  --green: #276749;
+  --ink: #263d33;
+  --muted: #657269;
+  --line: #e1e6df;
+  --surface: #f6f7f2;
+  --danger: #ad3d33;
+  --radius: 18px;
+  --shadow: 0 4px 20px #283b2404;
+}
+body {
+  background: var(--surface);
+}
+h1 {
+  font-size: clamp(1.85rem, 2.5vw, 2.3rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+}
+h2,
+h3 {
+  font-weight: 650;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline-color: #52805b;
+}
+.button {
+  border-radius: 10px;
+  font-weight: 600;
+  min-height: 44px;
+}
+.button.primary {
+  background: var(--green);
+}
+.button.primary:hover:not(:disabled) {
+  background: #1d533a;
+  box-shadow: 0 3px 9px #2455341a;
+}
+.button.secondary:hover:not(:disabled),
+.button.ghost:hover:not(:disabled) {
+  background: #eef2e9;
+}
+.button.ghost {
+  color: var(--green);
+}
+.panel {
+  box-shadow: var(--shadow);
+}
+.badge {
+  border-radius: 6px;
+  font-size: 0.73rem;
+  padding: 5px 9px;
+}
+.badge.success {
+  background: #edf4e6;
+  color: #3d622c;
+}
+.badge.neutral {
+  background: #f0f1ec;
+  color: #687266;
+}
+.badge.warm {
+  background: #fcf2df;
+  color: #906b2b;
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
+}
+.notice {
+  background: #f0f5ec;
+  color: #3e6144;
+  border-color: #d8e5cf;
+}
+.notice.success {
+  background: #edf5e8;
+  color: #365f2e;
+  border-color: #d0e2c6;
+}

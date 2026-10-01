@@ -164,3 +164,35 @@ it("accepts multipart upload and prevents commit before mapping review", async (
   });
   expect(result.statusCode).toBe(409);
 });
+it("keeps optional sector/age separate from original Excel columns and never guesses an invalid age", async () => {
+  const book = new ExcelJS.Workbook();
+  const sheet = book.addWorksheet("Datos");
+  sheet.addRows([
+    ["DPI", "Nombre", "Sector", "Edad"],
+    ["0000000000051", "Ana de prueba", " Norte ", 64],
+    ["0000000000052", "Luis de prueba", "", "edad desconocida"],
+    ["0000000000053", "María de prueba", "Centro", 130],
+  ]);
+  const sheets = await readWorkbook(
+    Buffer.from(await book.xlsx.writeBuffer()),
+    100,
+    10,
+  );
+  const result = analyze(sheets[0]!, {
+    campaignId: campaign,
+    sheet: "Datos",
+    headerRow: 1,
+    dpiColumn: 0,
+    nameColumns: [1],
+    sectorColumn: 2,
+    ageColumn: 3,
+  });
+  expect(
+    result.valid.map((row) => ({ sector: row.sector, age: row.age })),
+  ).toEqual([
+    { sector: "Norte", age: 64 },
+    { sector: null, age: null },
+    { sector: "Centro", age: null },
+  ]);
+  expect(Object.values(result.valid[1]!.extra)).toContain("edad desconocida");
+});

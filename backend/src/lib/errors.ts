@@ -14,6 +14,7 @@ export const databaseErrors: Record<string, number> = {
   IDEMPOTENCY_MISMATCH: 409,
   DELIVERY_VOIDED: 409,
   CAMPAIGN_NOT_ACTIVE: 409,
+  SHIFT_CLOSED: 409,
   NOT_ELIGIBLE: 404,
   INVALID_REASON: 400,
 };

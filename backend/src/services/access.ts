@@ -7,7 +7,7 @@ export async function assertCampaign(
   campaignId: string,
 ) {
   const result = await db.query(
-    "select id from app.campaigns where id=$1 and ($2::boolean or exists(select 1 from app.assignments where campaign_id=$1 and user_id=$3))",
+    "select id from app.campaigns where id=$1 and ($2::boolean or (status='active' and exists(select 1 from app.assignments where campaign_id=$1 and user_id=$3 and closed_at is null)))",
     [campaignId, profile.role === "admin", profile.id],
   );
   if (!result.rows.length) throw new AppError("FORBIDDEN", 403);

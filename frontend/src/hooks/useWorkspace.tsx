@@ -37,7 +37,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const data = query.data;
   const campaign =
     data.campaigns.find((c) => c.id === selected) ??
-    data.campaigns.find((c) => c.status === "active") ??
+    data.campaigns.find((c) => c.status === "active" && !c.shift_closed_at) ??
     data.campaigns[0] ??
     null;
   return (

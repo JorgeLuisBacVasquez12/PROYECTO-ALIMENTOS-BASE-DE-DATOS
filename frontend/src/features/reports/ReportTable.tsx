@@ -11,22 +11,44 @@ export function ReportTable({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="table-scroll">
-      <table>
+    <div
+      className="table-scroll"
+      tabIndex={0}
+      role="region"
+      aria-label="Personas y entregas"
+    >
+      <table className="report-table">
         <thead>
           <tr>
-            {["person", "dpi", "status", "point", "date", "by", "actions"].map(
-              (key) => (
-                <th key={key}>{t(`common.${key}`)}</th>
-              ),
-            )}
+            {[
+              "person",
+              "sector",
+              "age",
+              "status",
+              "point",
+              "date",
+              "by",
+              "actions",
+            ].map((key) => (
+              <th key={key}>
+                {key === "person" ? "Persona / DPI" : t(`common.${key}`)}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
             <tr key={row.id}>
-              <td className="name-cell">{row.full_name}</td>
-              <td className="dpi-text">{row.dpi}</td>
+              <td className="name-cell">
+                <strong>{row.full_name}</strong>
+                <small className="dpi-text cell-secondary">{row.dpi}</small>
+              </td>
+              <td>{row.sector ?? "Sin dato"}</td>
+              <td>
+                {row.age === null || row.age === undefined
+                  ? "Sin dato"
+                  : `${row.age} años`}
+              </td>
               <td>
                 <span
                   className={`badge ${row.delivery_id ? "success" : "neutral"}`}
@@ -35,7 +57,9 @@ export function ReportTable({
                 </span>
               </td>
               <td>{row.point_name ?? "—"}</td>
-              <td>{row.delivered_at ? formatDate(row.delivered_at) : "—"}</td>
+              <td className="date-cell">
+                {row.delivered_at ? formatDate(row.delivered_at) : "—"}
+              </td>
               <td>{row.operator_name ?? "—"}</td>
               <td>
                 {row.delivery_id ? (

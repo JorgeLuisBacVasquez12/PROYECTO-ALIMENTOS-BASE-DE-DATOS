@@ -42,7 +42,7 @@ test("login eye preserves the password, supports keyboard use and never submits 
   await page.screenshot({ path: "test-results/login-eye-mobile.png" });
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
   await expect(
-    page.getByRole("heading", { name: "Consulta de beneficiarios" }),
+    page.getByRole("heading", { name: "Jornadas de entrega" }),
   ).toBeVisible();
   expect(logins).toBe(1);
   expect(pageErrors).toEqual([]);

@@ -24,7 +24,7 @@ try {
   await migrateDatabase(db);
   console.log("Tablas preparadas.");
   const existing = await db.query(
-    "select p.id,p.role,p.active from app.profiles p join auth.users u on u.id=p.id where lower(u.email)=lower($1)",
+    "select id,role,active from app.profiles where lower(email)=lower($1)",
     [input.email],
   );
   if (existing.rows[0]) {

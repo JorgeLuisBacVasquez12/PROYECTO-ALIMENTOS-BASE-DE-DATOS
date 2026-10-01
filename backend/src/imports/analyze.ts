@@ -6,11 +6,19 @@ export interface ImportRow {
   dpi: string;
   full_name: string;
   extra: Record<string, string>;
+  sector: string | null;
+  age: number | null;
 }
 export function analyze(sheet: Sheet, mapping: ImportMapping) {
   const header = sheet.rows[mapping.headerRow - 1];
   if (!header) throw new AppError("INVALID_MAPPING");
-  const indexes = [mapping.dpiColumn, ...mapping.nameColumns];
+  const indexes = [
+    mapping.dpiColumn,
+    ...mapping.nameColumns,
+    ...[mapping.sectorColumn, mapping.ageColumn].filter(
+      (n): n is number => n !== undefined,
+    ),
+  ];
   if (indexes.some((i) => i >= header.length))
     throw new AppError("INVALID_MAPPING");
   const seenHeaders = new Map<string, number>();
@@ -54,6 +62,16 @@ export function analyze(sheet: Sheet, mapping: ImportMapping) {
     valid.push({
       dpi: dpi.data!,
       full_name: name,
+      sector:
+        mapping.sectorColumn === undefined
+          ? null
+          : cells[mapping.sectorColumn]?.text.trim() || null,
+      age:
+        mapping.ageColumn !== undefined &&
+        /^\d{1,3}$/.test(cells[mapping.ageColumn]?.text.trim() ?? "") &&
+        Number(cells[mapping.ageColumn]?.text) <= 120
+          ? Number(cells[mapping.ageColumn]?.text)
+          : null,
       extra: Object.fromEntries(
         columns.map((key, i) => [key, cells[i]?.text ?? ""]),
       ),

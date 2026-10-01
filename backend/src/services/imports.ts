@@ -36,7 +36,7 @@ export async function commitImport(
       );
       created += added.rowCount ?? 0;
       await tx.query(
-        "insert into app.campaign_people(campaign_id,person_id,full_name,extra) select $1,p.id,r.full_name,r.extra from jsonb_to_recordset($2::jsonb) as r(dpi text,full_name text,extra jsonb) join app.people p on p.dpi=r.dpi on conflict(campaign_id,person_id) do update set full_name=excluded.full_name,extra=excluded.extra",
+        "insert into app.campaign_people(campaign_id,person_id,full_name,extra,sector,age) select $1,p.id,r.full_name,r.extra,r.sector,r.age from jsonb_to_recordset($2::jsonb) as r(dpi text,full_name text,extra jsonb,sector text,age int) join app.people p on p.dpi=r.dpi on conflict(campaign_id,person_id) do update set full_name=excluded.full_name,extra=excluded.extra,sector=excluded.sector,age=excluded.age",
         [plan.mapping.campaignId, data],
       );
     }

@@ -18,11 +18,9 @@ test("admin creates an assigned access, resets its password and revokes an open 
   const reset = "Test-reset-password-456";
   const personal = "Test-personal-password-789";
   await signIn(admin, "admin@example.test", "Test-login-password-123");
+  await admin.getByRole("link", { name: "Empleados", exact: true }).click();
   await admin
-    .getByRole("link", { name: "Puntos y equipo", exact: true })
-    .click();
-  await admin
-    .getByRole("button", { name: "Crear usuario", exact: true })
+    .getByRole("button", { name: "Nuevo empleado", exact: true })
     .click();
   const dialog = admin.getByRole("dialog");
   await dialog
@@ -35,7 +33,7 @@ test("admin creates an assigned access, resets its password and revokes an open 
     .getByRole("combobox", { name: "Punto de entrega", exact: true })
     .selectOption(ids.pointA);
   await dialog
-    .getByRole("button", { name: "Crear usuario", exact: true })
+    .getByRole("button", { name: "Crear empleado", exact: true })
     .click();
   await expect(dialog).not.toBeVisible();
   const row = admin.getByRole("row").filter({ hasText: email });
@@ -49,9 +47,9 @@ test("admin creates an assigned access, resets its password and revokes an open 
   await expect(
     operator.getByRole("heading", { name: "Consulta de beneficiarios" }),
   ).toBeVisible();
-  await expect(
-    operator.getByRole("link", { name: "Puntos y equipo" }),
-  ).toHaveCount(0);
+  await expect(operator.getByRole("link", { name: "Empleados" })).toHaveCount(
+    0,
+  );
   await operator.goto("/team");
   await expect(
     operator.getByRole("heading", { name: "Consulta de beneficiarios" }),
@@ -63,7 +61,7 @@ test("admin creates an assigned access, resets its password and revokes an open 
   ).toBeVisible();
   await operator.getByRole("button", { name: "Cerrar sesión" }).click();
 
-  await row.getByRole("button", { name: "Restablecer contraseña" }).click();
+  await row.getByRole("button", { name: "Contraseña", exact: true }).click();
   await dialog.getByLabel("Nueva contraseña").fill(reset);
   await dialog.getByLabel("Repite la contraseña").fill(reset);
   await dialog.getByRole("button", { name: "Restablecer contraseña" }).click();
@@ -76,7 +74,7 @@ test("admin creates an assigned access, resets its password and revokes an open 
   await expect(
     operator.getByRole("heading", { name: "Consulta de beneficiarios" }),
   ).toBeVisible();
-  await operator.getByRole("link", { name: "Mi cuenta" }).click();
+  await operator.goto("/account");
   await operator.getByLabel("Nueva contraseña").fill(personal);
   await operator.getByLabel("Repite la contraseña").fill(personal);
   await operator.getByRole("button", { name: "Guardar" }).click();
@@ -89,20 +87,30 @@ test("admin creates an assigned access, resets its password and revokes an open 
     operator.getByRole("heading", { name: "Consulta de beneficiarios" }),
   ).toBeVisible();
 
-  await row.getByRole("button", { name: "Asignar punto" }).click();
-  await dialog.getByLabel("Jornada de trabajo").selectOption(ids.campaign);
+  await admin.getByRole("link", { name: "Jornadas", exact: true }).click();
+  await admin
+    .getByRole("button", { name: "Ver jornada Jornada de prueba", exact: true })
+    .click();
+  await admin
+    .getByRole("button", { name: "Asignar empleados", exact: true })
+    .click();
   await dialog
     .getByRole("combobox", { name: "Punto de entrega", exact: true })
     .selectOption(ids.pointB);
-  await dialog.getByRole("button", { name: "Guardar" }).click();
+  await dialog.getByRole("checkbox", { name: /Operadora verificada/ }).check();
+  await dialog
+    .getByRole("button", { name: "Asignar 1 empleados", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  await admin.getByRole("link", { name: "Empleados", exact: true }).click();
   await expect(row.getByText("Punto B de prueba")).toBeVisible();
   await expect(operator.getByText("Punto B de prueba").first()).toBeVisible({
     timeout: 15000,
   });
 
   await row.getByRole("button", { name: "Desactivar", exact: true }).click();
-  await dialog.getByRole("button", { name: "Guardar" }).click();
-  await expect(row.getByText("Inactivo", { exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Confirmar cambio" }).click();
+  await expect(row.getByText("Desactivado", { exact: true })).toBeVisible();
   await expect(
     operator.getByText(
       "No tienes acceso a esta acción. Contacta al administrador.",
@@ -113,7 +121,7 @@ test("admin creates an assigned access, resets its password and revokes an open 
     operator.getByRole("button", { name: "Consultar DPI" }),
   ).toHaveCount(0);
   await row.getByRole("button", { name: "Activar", exact: true }).click();
-  await dialog.getByRole("button", { name: "Guardar" }).click();
+  await dialog.getByRole("button", { name: "Confirmar cambio" }).click();
   await operator.getByRole("button", { name: "Reintentar" }).click();
   await expect(
     operator.getByRole("heading", { name: "Consulta de beneficiarios" }),
@@ -126,7 +134,7 @@ test("admin creates an assigned access, resets its password and revokes an open 
     ),
   ).toBe(true);
   await admin
-    .getByRole("button", { name: "Crear usuario", exact: true })
+    .getByRole("button", { name: "Nuevo empleado", exact: true })
     .click();
   await expect(dialog.getByLabel("Contraseña inicial")).toHaveValue("");
   expect(

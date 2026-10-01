@@ -29,6 +29,23 @@ export function recoveryAuth(config: Config, publicKey: string): RecoveryAuth {
   };
   return {
     ...adminAuth(config),
+    async find(email) {
+      for (let page = 1; ; page++) {
+        const { data, error } = await privileged.auth.admin.listUsers({
+          page,
+          perPage: 1000,
+        });
+        if (error)
+          throw new SetupError(
+            `No se pudieron consultar las cuentas de Auth: ${error.code ?? error.status}.`,
+          );
+        const user = data.users.find(
+          (user) => user.email?.toLowerCase() === email.toLowerCase(),
+        );
+        if (user) return { id: user.id, email: user.email };
+        if (data.users.length < 1000) return null;
+      }
+    },
     async read(id) {
       return ensure(
         await privileged.auth.admin.getUserById(id),

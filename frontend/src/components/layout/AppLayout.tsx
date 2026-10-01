@@ -1,76 +1,118 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
-import { Menu, MapPin, Radio, WifiOff } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Outlet, useLocation } from "react-router-dom";
+import { Menu, Radio, WifiOff, HandHeart, LogOut } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { useRealtime } from "../../hooks/useRealtime";
+import { useAuth } from "../../hooks/useAuth";
 import { Notice } from "../ui/Feedback";
+import { config } from "../../config/app";
 export function AppLayout() {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { campaign, campaigns, setCampaign } = useWorkspace();
+  const { campaign, profile } = useWorkspace();
+  const { signOut } = useAuth();
   const state = useRealtime(campaign?.id);
+  const location = useLocation();
+  const admin = profile.role === "admin";
+  const title =
+    location.pathname === "/reports"
+      ? "Consultas e historial"
+      : location.pathname === "/team"
+        ? "Empleados"
+        : location.pathname === "/account"
+          ? "Mi cuenta"
+          : location.pathname === "/import"
+            ? "Cargar padrón"
+            : "Jornadas";
   return (
-    <div className="workspace">
+    <div className={admin ? "workspace" : "operator-workspace"}>
       <a href="#main" className="skip-link">
-        {t("common.skip")}
+        Ir al contenido
       </a>
-      <Sidebar open={open} onNavigate={() => setOpen(false)} />
-      {open ? (
-        <button
-          className="sidebar-scrim"
-          onClick={() => setOpen(false)}
-          aria-label={t("common.close")}
-        />
-      ) : null}
+      {admin && (
+        <>
+          <Sidebar open={open} onNavigate={() => setOpen(false)} />
+          {open && (
+            <button
+              className="sidebar-scrim"
+              onClick={() => setOpen(false)}
+              aria-label="Cerrar menú"
+            />
+          )}
+        </>
+      )}
       <div className="workspace-body">
         <header className="topbar">
-          <button
-            className="icon-button mobile-toggle"
-            aria-label={t("common.menu")}
-            onClick={() => setOpen(!open)}
-          >
-            <Menu />
-          </button>
-          <label className="campaign-picker">
-            <span>{t("common.campaign")}</span>
-            <select
-              value={campaign?.id ?? ""}
-              onChange={(e) => setCampaign(e.target.value)}
-              aria-label={t("common.campaign")}
-            >
-              {!campaign ? (
-                <option value="">{t("common.select")}</option>
-              ) : null}
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          {admin ? (
+            <>
+              <button
+                className="icon-button mobile-toggle"
+                aria-label="Abrir menú"
+                onClick={() => setOpen(!open)}
+              >
+                <Menu />
+              </button>
+              <div className="breadcrumb">
+                Administración <span>/</span> <strong>{title}</strong>
+              </div>
+            </>
+          ) : (
+            <div className="operator-brand">
+              <HandHeart size={26} />
+              <strong>
+                {config.shortName}
+                <small>Control de entregas</small>
+              </strong>
+            </div>
+          )}
           <div className="topbar-right">
-            {campaign?.point_name ? (
-              <span className="point-label">
-                <MapPin size={16} />
-                {campaign.point_name}
-              </span>
-            ) : null}
-            <span className={`connection ${state}`}>
+            <span
+              className={`connection ${state}`}
+              title={
+                state === "live"
+                  ? "Actualización en tiempo real"
+                  : "Actualización automática periódica"
+              }
+            >
               {state === "offline" ? (
-                <WifiOff size={16} />
+                <WifiOff size={15} />
               ) : (
-                <Radio size={16} />
+                <Radio size={15} />
               )}
-              <span>{t(`connection.${state}`)}</span>
+              <span>
+                {state === "offline"
+                  ? "Sin conexión"
+                  : state === "live"
+                    ? "En tiempo real"
+                    : "Actualización automática"}
+              </span>
             </span>
+            {admin ? (
+              <span className="today-label">
+                {new Intl.DateTimeFormat("es-GT", {
+                  timeZone: config.timezone,
+                  day: "numeric",
+                  month: "long",
+                }).format(new Date())}
+              </span>
+            ) : (
+              <button
+                className="signout compact"
+                onClick={() => void signOut()}
+                aria-label="Cerrar sesión"
+              >
+                <LogOut size={17} />
+                <span>Salir</span>
+              </button>
+            )}
           </div>
         </header>
         <main id="main" className="main-content">
-          {state === "offline" ? (
-            <Notice tone="warning">{t("connection.offline")}</Notice>
-          ) : null}
+          {state === "offline" && (
+            <Notice tone="warning">
+              Sin conexión. No se pueden confirmar entregas.
+            </Notice>
+          )}
           <Outlet />
         </main>
       </div>

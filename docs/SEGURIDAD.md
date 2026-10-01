@@ -6,7 +6,7 @@
 - Los perfiles habilitados y roles se leen de PostgreSQL. No existen usuarios, contraseñas ni roles administrativos predefinidos en producción.
 - El DPI se consulta por POST para que no quede en la URL del buscador. Los logs de peticiones no incluyen cuerpo, autorización, cookies ni parámetros de consulta. Los errores SQL no se devuelven al navegador.
 - El esquema `app` está fuera de la Data API y sin acceso para `anon`/`authenticated`. Sus funciones de registro y anulación no son ejecutables por esos roles. La API usa una conexión PostgreSQL privada del servidor.
-- La tabla pública de Realtime tiene RLS y permiso exclusivamente de lectura para cuentas activas autorizadas. No publica DPI, nombres, tokens ni campos adicionales del Excel.
+- La tabla pública de Realtime tiene RLS: las cuentas de navegador activas autorizadas solo pueden leer; el backend privado puede insertar eventos. No publica DPI, nombres, tokens ni campos adicionales del Excel.
 - SQL parametrizado, esquemas Zod estrictos, listas de valores permitidos, CORS de orígenes exactos, encabezados de Helmet, límites de solicitudes y tamaños de carga.
 - El importador limita archivos comprimidos/descomprimidos, celdas, hojas y texto. No ejecuta contenido del archivo. Nombres o DPI con fórmulas requieren convertir a valores antes de importar.
 - La exportación produce celdas de texto: una celda que empieza por `=` no se convierte en fórmula.
@@ -33,3 +33,9 @@ El programa impide registros duplicados para un mismo DPI y jornada. No verifica
 La transacción protege el registro digital, pero no puede deshacer una porción entregada físicamente antes de confirmar. Sigue el orden: buscar, verificar identidad, confirmar, esperar “Entrega registrada”, entregar. Si aparece una respuesta incierta o repetida, verifica el registro antes de dar otra porción.
 
 Una alerta de dependencia corregida o un conjunto de pruebas aprobado no constituye una auditoría exhaustiva ni una garantía absoluta de seguridad. Revisa configuraciones, dependencias, respaldos y accesos durante la operación.
+
+## Migración de jornadas
+
+La migración `20260930215449_jornadas_operacion.sql` mantiene RLS activo en las tablas de operación y solo configura políticas para roles privados de conexión `mazate_app_*`, no superusuarios ni BYPASSRLS, con comentario `mazate-local-recovery:*`. Estos roles realizan SELECT/INSERT y los UPDATE necesarios a través del servidor, cuya API valida sesión/rol/asignación en cada petición. No reciben DELETE, cambios de esquema ni permisos para administrar usuarios de PostgreSQL. Nunca se usan como roles de Supabase Auth ni se exponen al navegador.
+
+Los correos se almacenan en `app.profiles.email` al crear accesos y se rellenan durante la migración desde `auth.users`, usando el propietario. El backend operativo lista correos sin leer `auth.users`; la recuperación busca la cuenta mediante la API administrativa de Auth. Las pruebas incluyen ejecutar consultas, entregas, anulaciones y cierres con el rol privado y RLS habilitado, sin permiso de lectura en `auth.users`.

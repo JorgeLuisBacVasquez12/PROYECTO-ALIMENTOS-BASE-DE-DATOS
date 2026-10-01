@@ -33,7 +33,8 @@ export function useRealtime(campaignId: string | undefined) {
               "assignments",
             ])
               void queries.invalidateQueries({ queryKey: [key, campaignId] });
-            void queries.invalidateQueries({ queryKey: ["bootstrap"] });
+            for (const key of ["bootstrap", "history", "users"])
+              void queries.invalidateQueries({ queryKey: [key] });
           }, 100);
         },
       )

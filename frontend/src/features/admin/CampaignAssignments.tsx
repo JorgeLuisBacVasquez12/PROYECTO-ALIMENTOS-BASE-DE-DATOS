@@ -1,102 +1,117 @@
-import type { FormEvent } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import type { Assignment, Profile } from "@mazate/contracts";
+import { UserPlus, Users, CheckCircle2 } from "lucide-react";
+import type { Assignment } from "@mazate/contracts";
 import { api } from "../../lib/api";
-import { useWorkspace } from "../../hooks/useWorkspace";
-import { useMutationAction } from "../../hooks/useMutationAction";
-import { Select } from "../../components/ui/Field";
 import { Button } from "../../components/ui/Button";
-import { ErrorNotice } from "../../components/ui/Feedback";
-export function CampaignAssignments({ campaignId }: { campaignId: string }) {
-  const { t } = useTranslation();
-  const { points } = useWorkspace();
-  const users = useQuery({
-    queryKey: ["users"],
-    queryFn: () => api<Profile[]>("/users"),
-  });
+import { ErrorNotice, Loading, Notice } from "../../components/ui/Feedback";
+import { BulkAssign } from "./BulkAssign";
+import { initials, formatDate } from "../../lib/format";
+export function CampaignAssignments({
+  campaignId,
+  closed = false,
+}: {
+  campaignId: string;
+  closed?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
   const assigned = useQuery({
     queryKey: ["assignments", campaignId],
     queryFn: () => api<Assignment[]>(`/campaigns/${campaignId}/assignments`),
+    refetchInterval: 15000,
   });
-  const mutation = useMutationAction(
-    (body: { userId: string; pointId: string }) =>
-      api(`/campaigns/${campaignId}/assignments`, {
-        method: "PUT",
-        body: JSON.stringify(body),
-      }),
-    ["assignments", "bootstrap", "users"],
-  );
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const values = new FormData(event.currentTarget);
-    mutation.mutate({
-      userId: String(values.get("userId")),
-      pointId: String(values.get("pointId")),
-    });
-  }
   return (
-    <section className="panel stack">
-      <h2>{t("campaigns.assignments")}</h2>
-      <ErrorNotice error={users.error || assigned.error || mutation.error} />
-      <form className="assignment-form" onSubmit={submit}>
-        <Select
-          label={t("campaigns.member")}
-          name="userId"
-          required
-          defaultValue=""
+    <section className="assignment-section stack">
+      <div className="section-title">
+        <div>
+          <h3>Equipo de esta jornada</h3>
+          <p className="muted small">
+            Turnos, puntos de entrega y cierres registrados.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          disabled={closed}
+          onClick={() => setOpen(true)}
         >
-          <option value="" disabled>
-            {t("common.select")}
-          </option>
-          {users.data
-            ?.filter((u) => u.active)
-            .map((u) => (
-              <option value={u.id} key={u.id}>
-                {u.display_name}
-              </option>
-            ))}
-        </Select>
-        <Select
-          label={t("common.point")}
-          name="pointId"
-          required
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {t("common.select")}
-          </option>
-          {points
-            .filter((p) => p.active)
-            .map((p) => (
-              <option value={p.id} key={p.id}>
-                {p.name}
-              </option>
-            ))}
-        </Select>
-        <Button busy={mutation.isPending}>{t("campaigns.assign")}</Button>
-      </form>
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>{t("campaigns.member")}</th>
-              <th>{t("common.point")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assigned.data?.map((a) => (
-              <tr key={a.user_id}>
-                <td>{a.display_name}</td>
-                <td>{a.point_name}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!assigned.data?.length ? (
-          <p className="table-empty">{t("common.empty")}</p>
-        ) : null}
+          <UserPlus size={17} />
+          Asignar empleados
+        </Button>
       </div>
+      {saved && (
+        <Notice tone="success">
+          Equipo asignado. Los empleados ya verán la jornada al entrar.
+        </Notice>
+      )}
+      <ErrorNotice error={assigned.error} />
+      {assigned.isPending ? (
+        <Loading />
+      ) : assigned.data?.length ? (
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Punto de entrega</th>
+                <th>Entregas</th>
+                <th>Turno</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assigned.data.map((a) => (
+                <tr key={a.user_id}>
+                  <td>
+                    <div className="table-person">
+                      <span className="avatar light">
+                        {initials(a.display_name)}
+                      </span>
+                      <strong>{a.display_name}</strong>
+                    </div>
+                  </td>
+                  <td>{a.point_name}</td>
+                  <td>{a.delivered}</td>
+                  <td>
+                    {a.closed_at ? (
+                      <>
+                        <span className="badge neutral">
+                          <CheckCircle2 size={13} />
+                          Finalizado
+                        </span>
+                        <small className="cell-secondary">
+                          {formatDate(a.closed_at)}
+                          <br />
+                          {a.closed_by_name}
+                        </small>
+                      </>
+                    ) : (
+                      <span className="badge success">
+                        <i className="status-dot" />
+                        Abierto
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="inline-empty">
+          <Users size={27} />
+          <div>
+            <strong>Aún no hay empleados asignados</strong>
+            <p>Elige quién atenderá y desde qué punto.</p>
+          </div>
+        </div>
+      )}
+      {open && (
+        <BulkAssign
+          campaignId={campaignId}
+          onClose={() => setOpen(false)}
+          onSaved={() => setSaved(true)}
+        />
+      )}
     </section>
   );
 }

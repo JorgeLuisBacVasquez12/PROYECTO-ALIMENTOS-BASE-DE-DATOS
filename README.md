@@ -2,12 +2,12 @@
 
 Aplicación web para consultar beneficiarios por DPI, registrar una sola entrega por persona y jornada, y conocer el punto, fecha y responsable. Frontend React + TypeScript separado del backend Fastify + TypeScript. PostgreSQL y autenticación en Supabase. Gestor de paquetes: **pnpm**.
 
-Para actualizar o recuperar el administrador, empieza por **[EMPEZAR_AQUI.md](EMPEZAR_AQUI.md)**. La guía general es **[INICIO_RAPIDO.md](INICIO_RAPIDO.md)**.
+Para actualizar esta versión y conocer el flujo de jornadas, empieza por **[EMPEZAR_AQUI.md](EMPEZAR_AQUI.md)**. La guía general es **[INICIO_RAPIDO.md](INICIO_RAPIDO.md)**.
 
 ## Lo que incluye
 
 - Login individual, roles administrador/operador y asignación de punto por jornada.
-- Creación de accesos con asignación inmediata, restablecimiento de contraseñas y activación/desactivación desde Puntos y equipo.
+- Creación de accesos con asignación inmediata, restablecimiento de contraseñas y activación/desactivación desde Empleados.
 - Recuperación del administrador con `pnpm admin:repair` y verificación del inicio de sesión.
 - Consulta exacta por DPI de 13 dígitos. Buscar no registra una entrega.
 - Confirmación explícita, validación en servidor e índice único global por jornada/persona.
@@ -17,10 +17,13 @@ Para actualizar o recuperar el administrador, empieza por **[EMPEZAR_AQUI.md](EM
 - Columnas adicionales conservadas en JSONB y exportadas como columnas del reporte.
 - Vista previa de incidencias. Las filas duplicadas dentro del archivo se excluyen todas; las inválidas solo se omiten con confirmación explícita.
 - Jornadas independientes. Recibir en una no bloquea a la persona para jornadas futuras.
-- Reportes administrativos por nombre/DPI, estado, punto y rango de fechas; API con filtro adicional de responsable.
+- Consultas por nombre/DPI, sector, edad del padrón, recibieron/no recibieron, punto, empleado y fechas.
+- Historial de entregas, anulaciones y cierres con responsable, punto y fecha/hora.
+- Asignación de varios empleados por jornada y punto; cierre individual y cierre global por el administrador.
+- Reutilización del padrón en otra jornada sin arrastrar entregas.
 - Excel exportado con filtros, encabezado fijo y DPI guardados como texto.
 - Anulación por administrador, con motivo obligatorio y registro de auditoría.
-- Diseño responsive basado en la paleta del anterior administrador municipal: marino `#092c46`, azul `#1069b5`, verde `#098578` e Inter.
+- Diseño responsive en verde bosque, crema y tonos cálidos; menú administrativo de tres secciones y pantalla de DPI para empleados.
 - Textos centralizados en i18next (español); zona horaria y marca configurables.
 
 ## Estructura
@@ -59,7 +62,7 @@ Las importaciones se permiten solo en jornadas en borrador. Una vez activa, el p
 
 Se requiere conexión al servidor para confirmar entregas. Las pantallas no autorizan entregas offline ni las dejan en una cola local. “Disponible” es una consulta; solo **“Entrega registrada”** después de confirmar autoriza la entrega física.
 
-El repositorio incluye ejemplos de configuración y el certificado raíz público de Supabase. Las credenciales se guardan en tus `.env`, excluidos de Git. No contiene padrón municipal real ni personas precargadas. El diseño utiliza un icono de edificio institucional, no un escudo municipal inventado. Puedes definir el logotipo autorizado mediante `VITE_LOGO_URL`.
+El repositorio incluye ejemplos de configuración y el certificado raíz público de Supabase. Las credenciales se guardan en tus `.env`, excluidos de Git. No contiene padrón municipal real ni personas precargadas. El diseño utiliza un símbolo de apoyo comunitario. Puedes definir el logotipo autorizado mediante `VITE_LOGO_URL`.
 
 ## Alcance de la comprobación
 

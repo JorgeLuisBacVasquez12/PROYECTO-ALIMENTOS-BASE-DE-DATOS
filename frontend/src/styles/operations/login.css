@@ -1,0 +1,71 @@
+.auth-page {
+  grid-template-columns: 1.05fr 1fr;
+  background: #fafbf7;
+}
+.auth-brand {
+  background: #234831;
+  padding: 48px 10%;
+  border: 0;
+  position: relative;
+  overflow: hidden;
+}
+.auth-brand::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border: 1px solid #a3bc7138;
+  border-radius: 50%;
+  right: -230px;
+  bottom: -140px;
+  box-shadow:
+    0 0 0 45px #a3bc7110,
+    0 0 0 90px #a3bc7109;
+  pointer-events: none;
+}
+.auth-brand > * {
+  position: relative;
+  z-index: 1;
+}
+.brand-line svg {
+  color: #c7d49e;
+}
+.auth-brand .eyebrow {
+  color: #bdcb98;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+.auth-brand h1 {
+  font-size: clamp(2.6rem, 4.5vw, 4.8rem);
+  font-weight: 500;
+}
+.auth-brand p:not(.eyebrow) {
+  color: #b6c5aa;
+  font-size: 0.93rem;
+  line-height: 1.8;
+}
+.auth-brand small {
+  color: #afbf9e;
+  font-size: 0.72rem;
+}
+.login-card {
+  max-width: 385px;
+  gap: 26px;
+}
+.login-icon {
+  background: #edf3e2;
+  color: #729056;
+  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+}
+.login-card h2 {
+  font-size: 1.95rem;
+  font-weight: 600;
+}
+.login-card p {
+  font-size: 0.86rem;
+}
+.login-card > .button {
+  min-height: 49px;
+}

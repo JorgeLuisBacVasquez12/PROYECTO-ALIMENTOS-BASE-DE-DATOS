@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { post } from "../../lib/api";
 import { useMutationAction } from "../../hooks/useMutationAction";
 import { Dialog } from "../../components/ui/Dialog";
-import { Input, Select } from "../../components/ui/Field";
+import { Input } from "../../components/ui/Field";
+import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import { ErrorNotice } from "../../components/ui/Feedback";
 import { AssignmentFields } from "./AssignmentFields";
@@ -31,7 +32,7 @@ export function CreateUser({
         displayName: String(values.get("displayName")),
         email: String(values.get("email")),
         password: String(values.get("password")),
-        role: String(values.get("role")),
+        role: "operator",
         ...(campaignId
           ? {
               assignment: {
@@ -42,6 +43,7 @@ export function CreateUser({
           : {}),
       });
       form.reset();
+      setCampaignId("");
       onCreated();
       onClose();
     } catch {
@@ -57,6 +59,10 @@ export function CreateUser({
       }}
     >
       <form className="stack" onSubmit={submit}>
+        <p className="muted">
+          Crea el acceso para el punto de registro. El empleado podrá buscar un
+          DPI, entregar el alimento y cerrar su turno.
+        </p>
         <Input
           name="displayName"
           label={t("common.name")}
@@ -71,14 +77,9 @@ export function CreateUser({
           autoComplete="off"
           required
         />
-        <Select name="role" label={t("common.role")} defaultValue="operator">
-          <option value="operator">{t("common.operator")}</option>
-          <option value="admin">{t("common.admin")}</option>
-        </Select>
-        <Input
+        <PasswordInput
           name="password"
           label={t("team.initialPassword")}
-          type="password"
           autoComplete="new-password"
           minLength={12}
           maxLength={128}
@@ -91,7 +92,17 @@ export function CreateUser({
           onCampaignChange={setCampaignId}
           optional
         />
-        <Button busy={mutation.isPending}>{t("team.newUser")}</Button>
+        <div className="actions end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button busy={mutation.isPending}>Crear empleado</Button>
+        </div>
       </form>
     </Dialog>
   );

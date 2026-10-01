@@ -3,7 +3,7 @@ export const formatDate = (value: string) =>
   new Intl.DateTimeFormat(config.locale, {
     timeZone: config.timezone,
     dateStyle: "medium",
-    timeStyle: "short",
+    timeStyle: "medium",
   }).format(new Date(value));
 export const formatNumber = (value: number) =>
   new Intl.NumberFormat(config.locale).format(value);

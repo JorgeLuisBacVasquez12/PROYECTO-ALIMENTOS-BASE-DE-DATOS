@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import type { Person } from "@mazate/contracts";
+import { PackageCheck } from "lucide-react";
+import { useWorkspace } from "../../hooks/useWorkspace";
 import { Dialog } from "../../components/ui/Dialog";
 import { Button } from "../../components/ui/Button";
 import { ErrorNotice, Notice } from "../../components/ui/Feedback";
@@ -22,6 +24,7 @@ export function ConfirmDelivery({
   onConfirm: () => void;
 }) {
   const { t } = useTranslation();
+  const { campaign } = useWorkspace();
   const [checked, setChecked] = useState(false);
   useEffect(() => setChecked(false), [open]);
   return (
@@ -33,7 +36,16 @@ export function ConfirmDelivery({
       }}
     >
       <div className="stack">
+        <div className="dialog-symbol">
+          <PackageCheck size={30} />
+        </div>
         <p className="muted">{t("lookup.dialogText")}</p>
+        <div className="delivery-context">
+          <strong>{campaign?.benefit}</strong>
+          <span>
+            {campaign?.name} · {campaign?.point_name}
+          </span>
+        </div>
         <div className="confirmation-person">
           <strong>{person?.full_name}</strong>
           <span className="dpi-text">{person?.dpi}</span>

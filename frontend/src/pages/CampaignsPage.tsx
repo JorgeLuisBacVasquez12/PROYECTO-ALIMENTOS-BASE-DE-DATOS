@@ -1,167 +1,236 @@
-import { useState, type FormEvent } from "react";
-import { CalendarDays, Plus } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Plus,
+  CalendarDays,
+  ArrowUpRight,
+  Users,
+  PackageCheck,
+  Upload,
+  Check,
+  Clock3,
+} from "lucide-react";
 import type { Campaign } from "@mazate/contracts";
-import { api, post } from "../lib/api";
 import { useWorkspace } from "../hooks/useWorkspace";
-import { useMutationAction } from "../hooks/useMutationAction";
-import { PageHeader, ErrorNotice, Notice } from "../components/ui/Feedback";
+import { PageHeader, Notice } from "../components/ui/Feedback";
 import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Field";
-import { Dialog } from "../components/ui/Dialog";
 import { CampaignAssignments } from "../features/admin/CampaignAssignments";
+import { CreateCampaign } from "../features/admin/CreateCampaign";
+import { CampaignCard } from "../features/admin/CampaignCard";
+import { CampaignStatus } from "../features/admin/CampaignStatus";
+import { formatDate } from "../lib/format";
 export default function CampaignsPage() {
-  const { t } = useTranslation();
   const { campaign, campaigns, setCampaign } = useWorkspace();
   const [creating, setCreating] = useState(false);
-  const [statusTarget, setTarget] = useState<Campaign | null>(null);
-  const create = useMutationAction(
-    (body: { name: string; benefit: string }) => post("/campaigns", body),
-    ["bootstrap"],
+  const [target, setTarget] = useState<Campaign | null>(null);
+  const [filter, setFilter] = useState("all");
+  const [message, setMessage] = useState("");
+  const shown = campaigns.filter(
+    (c) => filter === "all" || c.status === filter,
   );
-  const status = useMutationAction(
-    (c: Campaign) =>
-      api(`/campaigns/${c.id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          status: c.status === "active" ? "closed" : "active",
-        }),
-      }),
-    ["bootstrap"],
-  );
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const values = new FormData(event.currentTarget);
-    try {
-      await create.mutateAsync({
-        name: String(values.get("name")),
-        benefit: String(values.get("benefit")),
-      });
-      setCreating(false);
-    } catch {
-      /* Rendered below. */
-    }
-  }
+  const metrics = [
+    {
+      label: "Jornadas en curso",
+      value: campaigns.filter((c) => c.status === "active").length,
+      icon: CalendarDays,
+      tone: "green",
+    },
+    {
+      label: "Turnos abiertos",
+      value: campaigns
+        .filter((c) => c.status === "active")
+        .reduce((s, c) => s + c.open_shifts, 0),
+      icon: Users,
+      tone: "sand",
+    },
+    {
+      label: "Entregas registradas",
+      value: campaigns.reduce((s, c) => s + c.delivered, 0),
+      icon: PackageCheck,
+      tone: "rose",
+    },
+  ];
   return (
     <div className="stack">
       <PageHeader
-        title={t("campaigns.title")}
-        subtitle={t("campaigns.subtitle")}
+        title="Jornadas de entrega"
+        subtitle="Organiza a tu equipo. Acompaña cada entrega."
         actions={
-          <Button
-            onClick={() => {
-              create.reset();
-              setCreating(true);
-            }}
-          >
+          <Button onClick={() => setCreating(true)}>
             <Plus size={18} />
-            {t("campaigns.new")}
+            Nueva jornada
           </Button>
         }
       />
-      <Notice>{t("campaigns.setup")}</Notice>
-      <div className="campaign-grid">
-        {campaigns.map((c) => (
-          <section
-            className={`panel campaign-card ${campaign?.id === c.id ? "is-selected" : ""}`}
-            key={c.id}
-          >
-            <div className="section-title">
-              <CalendarDays size={23} />
-              <span
-                className={`badge ${c.status === "active" ? "success" : "neutral"}`}
-              >
-                {t(`campaigns.${c.status}`)}
-              </span>
+      {message && <Notice tone="success">{message}</Notice>}
+      <div className="overview-grid">
+        {metrics.map(({ label, value, icon: Icon, tone }) => (
+          <div className="overview-card" key={label}>
+            <span className={`overview-icon ${tone}`}>
+              <Icon size={22} />
+            </span>
+            <div>
+              <span>{label}</span>
+              <strong>{value.toLocaleString("es-GT")}</strong>
             </div>
-            <h2>{c.name}</h2>
-            <p>{c.benefit}</p>
-            <div className="actions">
-              <Button
-                variant="secondary"
-                onClick={() => setCampaign(c.id)}
-                disabled={campaign?.id === c.id}
-              >
-                {t("common.select")}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  status.reset();
-                  setTarget(c);
-                }}
-              >
-                {t(
-                  c.status === "active"
-                    ? "campaigns.close"
-                    : c.status === "closed"
-                      ? "campaigns.reopen"
-                      : "campaigns.activate",
-                )}
-              </Button>
-            </div>
-          </section>
+            <ArrowUpRight size={18} className="muted" />
+          </div>
         ))}
       </div>
-      {!campaigns.length ? (
-        <section className="panel empty-state">
-          <CalendarDays size={40} />
-          <p>{t("campaigns.empty")}</p>
-        </section>
-      ) : null}
-      {campaign ? (
-        <CampaignAssignments key={campaign.id} campaignId={campaign.id} />
-      ) : null}
-      <Dialog
-        open={creating}
-        title={t("campaigns.new")}
-        onClose={() => {
-          if (!create.isPending) setCreating(false);
-        }}
-      >
-        <form className="stack" onSubmit={submit}>
-          <Input
-            label={t("campaigns.name")}
-            name="name"
-            required
-            minLength={3}
-            maxLength={120}
-          />
-          <Input
-            label={t("campaigns.benefit")}
-            name="benefit"
-            required
-            minLength={2}
-            maxLength={120}
-          />
-          <ErrorNotice error={create.error} />
-          <Button busy={create.isPending}>{t("common.save")}</Button>
-        </form>
-      </Dialog>
-      <Dialog
-        open={!!statusTarget}
-        title={t("campaigns.confirmStatus")}
-        onClose={() => {
-          if (!status.isPending) setTarget(null);
-        }}
-      >
-        <div className="stack">
-          <strong>{statusTarget?.name}</strong>
-          <ErrorNotice error={status.error} />
-          <Button
-            busy={status.isPending}
-            onClick={() => {
-              if (statusTarget)
-                void status
-                  .mutateAsync(statusTarget)
-                  .then(() => setTarget(null))
-                  .catch(() => {});
-            }}
-          >
-            {t("common.save")}
-          </Button>
+      <div className="section-title">
+        <div className="segmented" aria-label="Filtrar jornadas">
+          {[
+            ["all", "Todas"],
+            ["active", "En curso"],
+            ["draft", "En preparación"],
+            ["closed", "Finalizadas"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setFilter(value!)}
+              aria-pressed={filter === value}
+              className={filter === value ? "active" : ""}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-      </Dialog>
+        <span className="muted small">{shown.length} jornadas</span>
+      </div>
+      {shown.length ? (
+        <div className="journey-grid">
+          {shown.map((c) => (
+            <CampaignCard
+              key={c.id}
+              campaign={c}
+              selected={campaign?.id === c.id}
+              onSelect={() => setCampaign(c.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <section className="panel empty-state welcome-empty">
+          <span className="empty-orbit">
+            <CalendarDays size={38} />
+          </span>
+          <h2>
+            {campaigns.length
+              ? "No hay jornadas en este estado"
+              : "Tu próxima jornada comienza aquí"}
+          </h2>
+          <p>
+            {campaigns.length
+              ? "Selecciona otro filtro para ver las demás jornadas."
+              : "Crea una jornada para cada entrega: pollo, pizza o cualquier otro beneficio. Podrás cargar el Excel cuando esté listo."}
+          </p>
+          {!campaigns.length && (
+            <Button onClick={() => setCreating(true)}>
+              <Plus size={17} />
+              Crear primera jornada
+            </Button>
+          )}
+        </section>
+      )}
+      {campaign && (
+        <section className="panel journey-detail">
+          <div className="section-title">
+            <div>
+              <span className="eyebrow">DETALLE DE LA JORNADA</span>
+              <h2>{campaign.name}</h2>
+              <p className="muted small">{campaign.benefit}</p>
+            </div>
+            <div className="actions">
+              {campaign.status === "draft" && (
+                <Link className="button secondary" to="/import">
+                  <Upload size={16} />
+                  Cargar Excel
+                </Link>
+              )}
+              <Link className="button ghost" to="/reports">
+                Ver consultas
+                <ArrowUpRight size={17} />
+              </Link>
+              <Button
+                variant={campaign.status === "active" ? "secondary" : "primary"}
+                disabled={
+                  campaign.status !== "active" &&
+                  (!campaign.eligible || !campaign.employee_count)
+                }
+                onClick={() => setTarget(campaign)}
+              >
+                {campaign.status === "active"
+                  ? "Finalizar jornada"
+                  : campaign.status === "closed"
+                    ? "Reabrir jornada"
+                    : "Habilitar jornada"}
+              </Button>
+            </div>
+          </div>
+          {campaign.status === "draft" ? (
+            <div className="setup-checks">
+              <span className={campaign.eligible ? "ready" : ""}>
+                {campaign.eligible ? <Check size={16} /> : <Clock3 size={16} />}
+                Padrón:{" "}
+                {campaign.eligible
+                  ? `${campaign.eligible} personas`
+                  : "pendiente del Excel"}
+              </span>
+              <span className={campaign.employee_count ? "ready" : ""}>
+                {campaign.employee_count ? (
+                  <Check size={16} />
+                ) : (
+                  <Clock3 size={16} />
+                )}
+                Equipo:{" "}
+                {campaign.employee_count
+                  ? `${campaign.employee_count} asignados`
+                  : "por asignar"}
+              </span>
+              <small>Completa ambos pasos para habilitar.</small>
+            </div>
+          ) : campaign.closed_at ? (
+            <div className="closure-note">
+              <Check size={16} />
+              Finalizada por {campaign.closed_by_name} ·{" "}
+              {formatDate(campaign.closed_at)}
+            </div>
+          ) : (
+            <p className="journey-rule">
+              <Check size={16} />
+              Una entrega por persona en esta jornada, en todos los puntos.
+            </p>
+          )}
+          <CampaignAssignments
+            key={campaign.id}
+            campaignId={campaign.id}
+            closed={campaign.status === "closed"}
+          />
+        </section>
+      )}
+      {creating && (
+        <CreateCampaign
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setFilter("all");
+            setMessage(
+              "Jornada creada. Ahora prepara el padrón y asigna a tus empleados.",
+            );
+          }}
+        />
+      )}
+      {target && (
+        <CampaignStatus
+          campaign={target}
+          onClose={() => setTarget(null)}
+          onSaved={() =>
+            setMessage(
+              target.status === "active"
+                ? "Jornada finalizada. El cierre quedó guardado en el historial."
+                : "Jornada habilitada. Tu equipo ya puede comenzar.",
+            )
+          }
+        />
+      )}
     </div>
   );
 }

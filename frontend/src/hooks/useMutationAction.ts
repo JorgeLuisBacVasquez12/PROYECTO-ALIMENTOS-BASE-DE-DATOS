@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-export function useMutationAction<T>(
-  action: (body: T) => Promise<unknown>,
+export function useMutationAction<T, TResult = unknown>(
+  action: (body: T) => Promise<TResult>,
   keys: string[] = [],
 ) {
   const client = useQueryClient();

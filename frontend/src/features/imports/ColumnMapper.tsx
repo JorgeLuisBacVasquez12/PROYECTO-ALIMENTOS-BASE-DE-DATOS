@@ -19,12 +19,16 @@ export function ColumnMapper({
   const [sheetName, setSheet] = useState(upload.sheets[0]?.name ?? "");
   const [headerRow, setHeader] = useState(1);
   const [dpiColumn, setDpi] = useState(-1);
+  const [sectorColumn, setSector] = useState(-1);
+  const [ageColumn, setAge] = useState(-1);
   const [nameColumns, setNames] = useState<number[]>([]);
   const sheet = upload.sheets.find((s) => s.name === sheetName);
   const headers = sheet?.preview[headerRow - 1] ?? [];
   const reset = () => {
     setDpi(-1);
     setNames([]);
+    setSector(-1);
+    setAge(-1);
   };
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -35,6 +39,8 @@ export function ColumnMapper({
         headerRow,
         dpiColumn,
         nameColumns,
+        ...(sectorColumn >= 0 ? { sectorColumn } : {}),
+        ...(ageColumn >= 0 ? { ageColumn } : {}),
       });
   }
   return (
@@ -76,7 +82,9 @@ export function ColumnMapper({
             required
             value={dpiColumn < 0 ? "" : dpiColumn}
             onChange={(e) => {
-              setDpi(Number(e.target.value));
+              setDpi(e.target.value === "" ? -1 : Number(e.target.value));
+              setSector(-1);
+              setAge(-1);
               setNames((current) =>
                 current.filter((i) => i !== Number(e.target.value)),
               );
@@ -103,6 +111,8 @@ export function ColumnMapper({
                   type="checkbox"
                   disabled={
                     i === dpiColumn ||
+                    i === sectorColumn ||
+                    i === ageColumn ||
                     (!nameColumns.includes(i) && nameColumns.length >= 8)
                   }
                   checked={nameColumns.includes(i)}
@@ -127,6 +137,51 @@ export function ColumnMapper({
         <p className="muted small">
           {t("import.selectedOrder")}:{" "}
           {nameColumns.map((i) => headers[i]).join(" · ") || "—"}
+        </p>
+        <div className="form-grid">
+          <Select
+            label="Columna de sector (opcional)"
+            value={sectorColumn}
+            onChange={(e) => setSector(Number(e.target.value))}
+          >
+            <option value={-1}>Sin dato en este archivo</option>
+            {headers.map((name, i) => (
+              <option
+                key={i}
+                value={i}
+                disabled={
+                  i === dpiColumn || i === ageColumn || nameColumns.includes(i)
+                }
+              >
+                {i + 1}. {name || "—"}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label="Columna de edad (opcional)"
+            value={ageColumn}
+            onChange={(e) => setAge(Number(e.target.value))}
+          >
+            <option value={-1}>Sin dato en este archivo</option>
+            {headers.map((name, i) => (
+              <option
+                key={i}
+                value={i}
+                disabled={
+                  i === dpiColumn ||
+                  i === sectorColumn ||
+                  nameColumns.includes(i)
+                }
+              >
+                {i + 1}. {name || "—"}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <p className="muted small">
+          La edad debe estar expresada en años completos, de 0 a 120. Se
+          conserva la edad del padrón; si no hay un valor válido, aparecerá como
+          «Sin dato».
         </p>
         <Notice>{t("import.otherColumns")}</Notice>
       </section>
