@@ -28,6 +28,7 @@ export function useDpiLookup(campaignId: string) {
     },
     onSuccess: () => {
       setDialog(false);
+      void queries.invalidateQueries({ queryKey: ["bootstrap"] });
       for (const key of ["lookup", "stats", "activity", "report"])
         void queries.invalidateQueries({ queryKey: [key, campaignId] });
     },

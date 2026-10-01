@@ -1,47 +1,70 @@
-# Actualizar y recuperar el administrador
+# Jornadas, empleados y consultas
 
-Esta rama corrige el acceso inicial y completa la administración de usuarios. Conserva tus archivos `backend/.env` y `frontend/.env`: Git no los incluye ni los reemplaza.
+Esta versión organiza la administración en tres secciones: **Jornadas**, **Consultas e historial** y **Empleados**. El empleado entra directamente a consultar DPI y registrar entregas en sus jornadas asignadas.
 
-## Si ya tienes el repositorio en tu Mac
+## Actualizar una instalación existente
 
-Detén frontend y backend con Ctrl+C. Desde `frontend`, `backend` o la raíz de **la misma copia del repositorio**, ejecuta este bloque. Primero te sitúa en la raíz; cada paso se ejecuta únicamente si el anterior terminó bien:
+Conserva `backend/.env` y `frontend/.env`. Detén ambos servidores con Ctrl+C y ejecuta desde tu copia del repositorio:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)" &&
 git fetch origin &&
-git switch fix/admin-accesos &&
-git pull --ff-only origin fix/admin-accesos &&
-pnpm install --frozen-lockfile &&
-pnpm admin:repair &&
+git switch feat/jornadas-admin-operacion &&
+git pull --ff-only origin feat/jornadas-admin-operacion &&
+pnpm install --frozen-lockfile
+```
+
+**Antes de iniciar el backend nuevo, aplica la migración de esta versión.** Agrega los campos de jornada, cierre, sector y edad sin borrar padrones ni entregas. El usuario privado de conexión del backend no administra el esquema.
+
+Si el proyecto existente fue preparado desde el panel de Supabase, abre **SQL Editor** en ese proyecto y ejecuta el contenido completo de [20260930215449_jornadas_operacion.sql](database/migrations/20260930215449_jornadas_operacion.sql) una sola vez, con el rol propietario `postgres`. No vuelvas a ejecutar `001_schema.sql` ni `002_delivery.sql` en una base ya instalada. Este paso se realiza en el panel y no pide la contraseña de PostgreSQL en la terminal.
+
+Si tu instalación ya lleva el registro `app.schema_migrations`, utiliza `pnpm db:migrate` con la conexión del propietario para mantener ese registro al día. No uses el usuario operativo `mazate_app_*` para ejecutar migraciones. Una instalación nueva puede seguir [INICIO_RAPIDO.md](INICIO_RAPIDO.md).
+
+La migración incluye políticas RLS y permisos para los roles privados `mazate_app_*` que tengan el marcador `mazate-local-recovery:*`. Los demás roles personalizados requieren que el DBA les configure esos permisos. `anon` y `authenticated` continúan sin acceso al esquema privado.
+
+Después de aplicar la migración:
+
+```bash
 pnpm dev
 ```
 
-`git switch fix/admin-accesos` usa la rama existente o la crea a partir de `origin/fix/admin-accesos`. Si Git avisa de cambios locales, consérvalos antes de cambiar de rama; no uses `reset --hard` para saltar ese aviso. Un `git pull` estando en `main` no incorpora un PR todavía abierto.
+Abre http://127.0.0.1:5173 e inicia sesión con tu cuenta existente. No hace falta volver a crear ni reparar el administrador si ya puedes entrar. La actualización del repositorio no aplica automáticamente cambios en Supabase.
 
-`pnpm admin:repair` funciona desde la raíz, `frontend` y `backend`. Siempre usa `backend/.env` de esa copia y muestra su ruta. Lee `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD`; pide los datos que falten. Las variables de la terminal tienen prioridad sobre el archivo. Ajusta esos valores al correo y la contraseña con los que quieres entrar. Puedes comprobar que tienes la versión corregida con `pnpm admin:repair --help`.
+## Preparar una jornada
 
-Si PostgreSQL rechaza su conexión, solicita por separado la contraseña de la base de datos, con entrada oculta.
+1. En **Empleados → Nuevo empleado**, escribe nombre, correo y contraseña de al menos 12 caracteres. Puedes asignar jornada/punto ahora o después. El acceso creado siempre es de empleado.
+2. En **Jornadas → Nueva jornada**, indica un nombre y el alimento, por ejemplo «Entrega de pollo · Octubre» / «Pollo».
+3. Elige **Cargaré el Excel después** o reutiliza el padrón de otra jornada. Reutilizar personas nunca copia sus entregas.
+4. Desde el detalle, usa **Cargar Excel**. Selecciona hoja, encabezado, DPI y nombres en el orden correcto. Sector y edad son opcionales. Revisa las incidencias antes de confirmar.
+5. Pulsa **Asignar empleados**, elige un punto y marca las personas que atenderán allí. El botón junto al selector permite crear un punto. Repite para otros puntos.
+6. Pulsa **Habilitar jornada** y confirma. Se requiere padrón y al menos una asignación a una cuenta y punto activos.
 
-El comando crea el administrador si no existe, recupera un perfil faltante o restablece la contraseña del administrador activo indicado. Comprueba que frontend y backend apunten al mismo proyecto, prueba el inicio de sesión con la clave pública del frontend y confirma que exista un perfil administrador activo. Solo entonces muestra **ACCESO VERIFICADO**. No transforma operadores en administradores ni reactiva cuentas deshabilitadas.
+Puedes preparar varias jornadas y asignar al mismo empleado a más de una. Una jornada en preparación aparece al empleado como pendiente de habilitar, sin buscador ni entregas.
 
-`pnpm dev` desde la raíz inicia frontend y backend juntos. Abre http://127.0.0.1:5173 e inicia sesión con esos datos. El botón del ojo permite mostrar u ocultar la contraseña sin enviar el formulario. La contraseña de PostgreSQL conecta con la base de datos; la contraseña del administrador sirve para entrar al programa.
+## Atender desde un punto
 
-Para una instalación de producción, usa `FRONTEND_MODE=production pnpm admin:repair`. Ese modo lee también `frontend/.env.production` y `frontend/.env.production.local`, en lugar de los archivos de desarrollo. Si `NODE_ENV=production`, el modo predeterminado ya es `production`. Para un frontend compilado con `vite build --mode staging`, usa `FRONTEND_MODE=staging`. Esto también se aplica a `pnpm configurar`.
+1. El empleado inicia sesión y elige una de sus jornadas habilitadas.
+2. Escribe el DPI de 13 dígitos y pulsa **Consultar DPI**.
+3. Si la persona aparece disponible, pulsa **Marcar como entregado**, coteja nombre y documento y confirma.
+4. Espera **Entrega registrada con éxito** antes de entregar físicamente el alimento.
 
-Si todavía utilizas el ZIP anterior sin Git, descarga esta rama, copia tus dos `.env` a las carpetas correspondientes y ejecuta los tres comandos `pnpm` anteriores en la nueva carpeta. Conserva también cualquier certificado al que apunte `DATABASE_SSL_CA_FILE`.
+Si el DPI no está en el padrón de esa jornada, se muestra **No encontramos este DPI**. Si ya recibió, aparece el punto, el responsable y la fecha/hora de la entrega anterior. El servidor protege todos los puntos a la vez: dos confirmaciones simultáneas no generan dos entregas.
 
-## Crear los accesos del personal
+**La regla depende de la jornada, no del nombre del alimento ni del día.** Otro punto de la misma jornada de pollo no puede volver a entregar. Una jornada diferente de pizza, chocolate o incluso otra entrega de pollo sí permite un registro propio.
 
-1. Entra como administrador y abre **Puntos y equipo**.
-2. Crea los puntos necesarios, por ejemplo Punto A y Punto B.
-3. Pulsa **Crear usuario** y escribe nombre, correo, rol y contraseña de al menos 12 caracteres.
-4. Selecciona jornada y punto; también puedes elegir **Asignar después**.
-5. Comparte el acceso con la persona. Puede cambiar su contraseña desde **Mi cuenta**, al pulsar su perfil.
+## Cierres y seguimiento
 
-La lista muestra correo, rol, estado y asignaciones. **Asignar punto** permite cambiar el punto por jornada; **Restablecer contraseña** cambia la contraseña de otra cuenta activa; **Desactivar** impide nuevas solicitudes a la API, incluso desde una sesión abierta. La pantalla refleja el bloqueo en su siguiente consulta o actualización periódica. **Activar** recupera el acceso conservando historial y asignaciones.
+- **Empleado → Cerrar jornada:** cierra únicamente su turno en la jornada seleccionada. Guarda quién, dónde y cuándo; los demás siguen atendiendo.
+- **Administrador → Finalizar jornada:** cierra la jornada completa y sus turnos abiertos.
+- **Administrador → Asignar empleados:** una nueva asignación del mismo empleado reabre su turno y puede cambiar su punto. El historial previo se conserva.
+- **Administrador → Reabrir jornada:** reabre los turnos asignados. Conserva las entregas anteriores y el bloqueo de duplicados.
 
-Las jornadas cerradas y los puntos o usuarios desactivados no admiten nuevas asignaciones. Las contraseñas no se guardan en el historial de acciones.
+**Consultas e historial → Personas y entregas** permite filtrar por sector, edad, estado, empleado, punto y fechas y exportar Excel. **Historial de movimientos** muestra entregas, anulaciones y cierres, incluso de jornadas finalizadas. Una anulación exige motivo y conserva el registro original.
 
-## Instalación desde cero
+Las edades son las que trae el Excel, no edades calculadas automáticamente. Los valores ausentes o inválidos se muestran como «Sin dato». Las columnas originales se conservan y aparecen en la exportación. Todavía no hay un padrón municipal precargado: lo cargas cuando te entreguen el archivo.
 
-Sigue [INICIO_RAPIDO.md](INICIO_RAPIDO.md) para completar los dos `.env` con los datos de tu proyecto. Ejecuta `pnpm configurar` para preparar las tablas y comprobar el acceso del administrador. Si ese correo ya existe con otra contraseña, el comando te dirige a `pnpm admin:repair`.
+## Accesos existentes
+
+En **Empleados**, **Contraseña** restablece la contraseña de una cuenta activa y **Desactivar** bloquea nuevas solicitudes incluso con sesión abierta. El historial permanece. Las contraseñas no aparecen en el historial ni se guardan en Git.
+
+Solo si vuelve a fallar el acceso del administrador, usa `pnpm admin:repair --help`. La reparación lee `ADMIN_EMAIL`, `ADMIN_DISPLAY_NAME` y `ADMIN_PASSWORD` de `backend/.env`; funciona desde raíz, frontend o backend. La contraseña del programa y la de PostgreSQL son distintas. No es un paso necesario para actualizar el diseño.

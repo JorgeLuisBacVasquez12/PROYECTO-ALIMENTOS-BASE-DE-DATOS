@@ -25,10 +25,10 @@ export function adminRoutes(
     requireAdmin(request.profile);
     return (
       await db.query(
-        `select p.id,p.display_name,p.role,p.active,u.email,
-        coalesce((select jsonb_agg(jsonb_build_object('campaign_id',c.id,'campaign_name',c.name,'point_id',pt.id,'point_name',pt.name) order by c.created_at desc)
+        `select p.id,p.display_name,p.role,p.active,p.email,
+        coalesce((select jsonb_agg(jsonb_build_object('campaign_id',c.id,'campaign_name',c.name,'point_id',pt.id,'point_name',pt.name,'closed_at',a.closed_at) order by c.created_at desc)
           from app.assignments a join app.campaigns c on c.id=a.campaign_id join app.points pt on pt.id=a.point_id where a.user_id=p.id and c.status <> 'closed'), '[]'::jsonb) assignments
-        from app.profiles p join auth.users u on u.id=p.id order by p.display_name`,
+        from app.profiles p order by p.display_name`,
       )
     ).rows;
   });
@@ -43,8 +43,8 @@ export function adminRoutes(
         await db.transaction(async (tx) => {
           await lockAdmin(tx, request.profile.id);
           await tx.query(
-            "insert into app.profiles(id,display_name,role) values($1,$2,$3)",
-            [id, body.displayName, body.role],
+            "insert into app.profiles(id,display_name,role,email) values($1,$2,$3,$4)",
+            [id, body.displayName, body.role, body.email],
           );
           await audit(tx, request.profile.id, "user.create", id);
           if (body.assignment)

@@ -1,0 +1,82 @@
+.team-intro {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 3px;
+}
+.team-intro strong {
+  font-size: 0.93rem;
+}
+.team-intro p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.count-chip {
+  font-size: 0.7rem;
+  color: #658152;
+  background: #edf2e5;
+  padding: 3px 7px;
+  border-radius: 5px;
+  margin-left: 8px;
+}
+.inline-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #929d89;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 13px;
+}
+.inline-search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  width: min(220px, 100%);
+  font-size: 0.8rem;
+  color: var(--ink);
+  min-width: 0;
+}
+.inline-search:focus-within {
+  outline: 2px solid #8faa7b;
+  outline-offset: 2px;
+}
+.team-table {
+  min-width: 780px;
+}
+.team-table td:nth-child(2) {
+  white-space: normal;
+}
+.assignment-label {
+  margin-block: 5px;
+}
+.assignment-label strong,
+.assignment-label small {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.assignment-label small {
+  color: var(--muted);
+  margin-top: 3px;
+}
+thead {
+  background: #f8faf4;
+}
+td,
+th {
+  border-color: #ecf0e7;
+  padding: 16px 20px;
+}
+th {
+  font-size: 0.71rem;
+  font-weight: 550;
+  color: #7e8974;
+}
+td {
+  font-size: 0.79rem;
+}
+.table-toolbar h2 {
+  font-size: 0.96rem;
+}

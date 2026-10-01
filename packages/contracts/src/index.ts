@@ -14,6 +14,7 @@ export const campaignSchema = z
   .object({
     name: z.string().trim().min(3).max(120),
     benefit: z.string().trim().min(2).max(120),
+    rosterSourceId: uuid.optional(),
   })
   .strict();
 export const pointSchema = z
@@ -32,6 +33,7 @@ export const userSchema = z
   })
   .strict();
 export const createUserSchema = userSchema.extend({
+  role: z.literal("operator").default("operator"),
   assignment: z.object({ campaignId: uuid, pointId: uuid }).strict().optional(),
 });
 export const resetPasswordSchema = z
@@ -44,12 +46,24 @@ export const mappingSchema = z
     headerRow: z.number().int().min(1).max(100),
     dpiColumn: z.number().int().min(0).max(199),
     nameColumns: z.array(z.number().int().min(0).max(199)).min(1).max(8),
+    sectorColumn: z.number().int().min(0).max(199).optional(),
+    ageColumn: z.number().int().min(0).max(199).optional(),
   })
   .strict()
   .refine(
     (v) =>
       !v.nameColumns.includes(v.dpiColumn) &&
-      new Set(v.nameColumns).size === v.nameColumns.length,
+      new Set([
+        v.dpiColumn,
+        ...v.nameColumns,
+        ...[v.sectorColumn, v.ageColumn].filter(
+          (n): n is number => n !== undefined,
+        ),
+      ]).size ===
+        1 +
+          v.nameColumns.length +
+          Number(v.sectorColumn !== undefined) +
+          Number(v.ageColumn !== undefined),
   );
 export type ImportMapping = z.infer<typeof mappingSchema>;
 export type Role = "admin" | "operator";
@@ -80,6 +94,14 @@ export interface Campaign {
   status: "draft" | "active" | "closed";
   point_id: string | null;
   point_name: string | null;
+  shift_closed_at: string | null;
+  closed_at: string | null;
+  closed_by_name: string | null;
+  created_at: string;
+  eligible: number;
+  delivered: number;
+  employee_count: number;
+  open_shifts: number;
 }
 export interface Bootstrap {
   profile: Profile;
@@ -90,6 +112,8 @@ export interface Person {
   id: string;
   dpi: string;
   full_name: string;
+  sector?: string | null;
+  age?: number | null;
 }
 export interface Delivery {
   id: string;
@@ -173,6 +197,27 @@ export interface Assignment {
   display_name: string;
   point_id: string;
   point_name: string;
+  assigned_at: string;
+  closed_at: string | null;
+  closed_by_name: string | null;
+  delivered: number;
+}
+export interface HistoryEvent {
+  id: string;
+  action: string;
+  actor: string;
+  created_at: string;
+  campaign_name: string | null;
+  recipient_name: string | null;
+  dpi: string | null;
+  point_name: string | null;
+  detail: Record<string, unknown>;
+}
+export interface HistoryReport {
+  rows: HistoryEvent[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 export interface ApiErrorBody {
   code: string;

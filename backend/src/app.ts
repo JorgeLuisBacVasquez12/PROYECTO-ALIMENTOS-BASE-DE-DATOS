@@ -13,6 +13,7 @@ import { campaignRoutes } from "./routes/campaigns.js";
 import { adminRoutes, type UserProvisioner } from "./routes/admin.js";
 import { reportRoutes } from "./routes/reports.js";
 import { importRoutes } from "./routes/imports.js";
+import { historyRoutes } from "./routes/history.js";
 export async function createApp(deps: {
   db: Database;
   config: Config;
@@ -69,6 +70,7 @@ export async function createApp(deps: {
   adminRoutes(app, db, users);
   reportRoutes(app, db, config);
   importRoutes(app, db, config);
+  historyRoutes(app, db, config.APP_TIMEZONE);
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError)
       return reply

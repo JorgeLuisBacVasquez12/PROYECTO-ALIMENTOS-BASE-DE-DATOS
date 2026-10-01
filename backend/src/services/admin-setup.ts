@@ -19,8 +19,8 @@ export async function createAdministrator(
   try {
     await db.transaction(async (tx) => {
       await tx.query(
-        "insert into app.profiles(id,display_name,role) values($1,$2,'admin')",
-        [id, body.displayName],
+        "insert into app.profiles(id,display_name,role,email) values($1,$2,'admin',$3)",
+        [id, body.displayName, body.email],
       );
       await tx.query(
         "insert into app.audit_log(actor_id,action,entity_id) values($1,'admin.bootstrap',$1)",

@@ -3,6 +3,7 @@ import { userSchema } from "@mazate/contracts";
 import { createAdministrator, type AdminAuth } from "./admin-setup.js";
 import { SetupError } from "../setup/errors.js";
 export interface RecoveryAuth extends AdminAuth {
+  find(email: string): Promise<{ id: string; email?: string } | null>;
   read(
     id: string,
   ): Promise<{ id: string; email?: string; banned_until?: string }>;
@@ -15,15 +16,16 @@ export async function repairAdministrator(
   input: unknown,
 ) {
   const body = userSchema.parse(input);
-  const found = await db.query(
-    "select u.id,p.role,p.active from auth.users u left join app.profiles p on p.id=u.id where lower(u.email)=lower($1)",
-    [body.email],
-  );
-  if (found.rows.length > 1)
-    throw new SetupError(
-      "Hay más de una cuenta con ese correo. Revisa Authentication > Users.",
-    );
-  const existing = found.rows[0];
+  const account = await auth.find(body.email);
+  const profile = account
+    ? (
+        await db.query<{ role: string; active: boolean }>(
+          "select role,active from app.profiles where id=$1",
+          [account.id],
+        )
+      ).rows[0]
+    : null;
+  const existing = account ? { ...profile, id: account.id } : null;
   let id: string;
   if (!existing) {
     ({ id } = await createAdministrator(db, auth, body));
@@ -59,9 +61,13 @@ export async function repairAdministrator(
         );
       if (!current.rows[0])
         await tx.query(
-          "insert into app.profiles(id,display_name,role) values($1,$2,'admin')",
-          [id, body.displayName],
+          "insert into app.profiles(id,display_name,role,email) values($1,$2,'admin',$3)",
+          [id, body.displayName, body.email],
         );
+      await tx.query("update app.profiles set email=$2 where id=$1", [
+        id,
+        body.email,
+      ]);
       await tx.query(
         "insert into app.audit_log(actor_id,action,entity_id) values($1,'admin.password_recovery',$1)",
         [id],

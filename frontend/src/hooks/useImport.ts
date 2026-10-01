@@ -36,9 +36,12 @@ export function useImport() {
         skipInvalid,
         planId: plan!.planId,
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["stats"] });
-      void queryClient.invalidateQueries({ queryKey: ["report"] });
+    onSuccess: async () => {
+      await Promise.all(
+        ["stats", "report", "report-options", "bootstrap"].map((key) =>
+          queryClient.invalidateQueries({ queryKey: [key] }),
+        ),
+      );
     },
   });
   const reset = () => {

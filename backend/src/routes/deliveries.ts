@@ -15,7 +15,7 @@ export function deliveryRoutes(app: FastifyInstance, db: Database) {
     const { campaignId, dpi } = lookupSchema.parse(request.body);
     await assertCampaign(db, request.profile, campaignId);
     const found = await db.query<Person>(
-      "select p.id,p.dpi,cp.full_name from app.people p join app.campaign_people cp on cp.person_id=p.id where cp.campaign_id=$1 and p.dpi=$2",
+      "select p.id,p.dpi,cp.full_name,cp.sector,cp.age from app.people p join app.campaign_people cp on cp.person_id=p.id where cp.campaign_id=$1 and p.dpi=$2",
       [campaignId, dpi],
     );
     const person = found.rows[0];

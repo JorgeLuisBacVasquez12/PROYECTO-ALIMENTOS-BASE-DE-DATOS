@@ -18,13 +18,19 @@ const ReportsPage = lazy(() => import("../pages/ReportsPage"));
 const ImportPage = lazy(() => import("../pages/ImportPage"));
 const CampaignsPage = lazy(() => import("../pages/CampaignsPage"));
 const TeamPage = lazy(() => import("../pages/TeamPage"));
-const AuditPage = lazy(() => import("../pages/AuditPage"));
 const AccountPage = lazy(() => import("../pages/AccountPage"));
 function AdminOnly() {
   return useWorkspace().profile.role === "admin" ? (
     <Outlet />
   ) : (
     <Navigate to="/" replace />
+  );
+}
+function HomePage() {
+  return useWorkspace().profile.role === "admin" ? (
+    <CampaignsPage />
+  ) : (
+    <LookupPage />
   );
 }
 function Authenticated() {
@@ -37,14 +43,17 @@ function Authenticated() {
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route element={<AppLayout />}>
-              <Route index element={<LookupPage />} />
+              <Route index element={<HomePage />} />
               <Route path="account" element={<AccountPage />} />
               <Route element={<AdminOnly />}>
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="import" element={<ImportPage />} />
                 <Route path="campaigns" element={<CampaignsPage />} />
                 <Route path="team" element={<TeamPage />} />
-                <Route path="audit" element={<AuditPage />} />
+                <Route
+                  path="audit"
+                  element={<Navigate to="/reports" replace />}
+                />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

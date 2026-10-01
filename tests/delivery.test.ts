@@ -184,7 +184,12 @@ describe("Real SQL behind HTTP routes (embedded PostgreSQL)", () => {
     const sheet = book.worksheets[0]!;
     expect(sheet.getCell("A2").type).toBe(3);
     expect(sheet.autoFilter).toBeTruthy();
-    expect(sheet.getCell("H2").value).toBe("=2+2");
+    const phoneColumn = (sheet.getRow(1).values as unknown[]).indexOf(
+      "Dato: Teléfono",
+    );
+    expect(phoneColumn).toBeGreaterThan(0);
+    expect(sheet.getRow(2).getCell(phoneColumn).value).toBe("=2+2");
+    expect(sheet.getRow(2).getCell(phoneColumn).type).toBe(3);
   });
   it("revokes disabled users and conceals private tables from client roles", async () => {
     await database.db.query(

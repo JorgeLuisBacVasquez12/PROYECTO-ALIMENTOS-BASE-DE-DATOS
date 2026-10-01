@@ -1,0 +1,131 @@
+.field input,
+.field select,
+.field textarea {
+  border-color: #d5ddcd;
+  border-radius: 9px;
+  font-size: 0.85rem;
+}
+.field {
+  font-size: 0.79rem;
+}
+.password-toggle:hover {
+  background: #f0f4e9;
+}
+.dialog {
+  border-radius: 22px;
+  padding: 28px;
+  border-color: #edf0e6;
+  box-shadow: 0 30px 90px #17301640;
+}
+.dialog::backdrop {
+  background: #25332282;
+  backdrop-filter: blur(5px);
+}
+.dialog-heading h2 {
+  font-size: 1.2rem;
+}
+.dialog-symbol {
+  margin: 0 auto;
+  border-radius: 22px;
+  background: #edf4e5;
+  width: 76px;
+  height: 76px;
+  color: #628a45;
+  display: grid;
+  place-items: center;
+}
+.dialog-intro {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.confirmation-hero {
+  padding: 23px;
+  text-align: center;
+  background: #f4f7ed;
+  border: 1px solid #e8eddf;
+  border-radius: 14px;
+  color: #608245;
+}
+.confirmation-hero > .soft-icon {
+  margin: 0 auto;
+}
+.confirmation-hero h3 {
+  margin: 14px 0 9px;
+  color: #48613a;
+  font-size: 1.18rem;
+}
+.confirmation-hero p {
+  color: #6b7b5e;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+.confirmation-hero.warm {
+  background: #fbf5e9;
+  color: #a68547;
+  border-color: #f1e9d5;
+}
+.confirmation-person {
+  background: #fafbf7;
+  border-color: var(--line);
+  border-radius: 12px;
+}
+.confirmation-person span {
+  font-size: 0.83rem;
+}
+.delivery-context {
+  text-align: center;
+  margin-top: -10px;
+}
+.delivery-context strong {
+  display: block;
+  font-size: 1.1rem;
+}
+.delivery-context span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.employee-checklist {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.employee-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.employee-choice.chosen {
+  background: #f0f5e8;
+}
+.employee-choice > input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--green);
+}
+.employee-choice strong,
+.employee-choice small {
+  display: block;
+  font-size: 0.83rem;
+}
+.employee-choice small {
+  color: var(--muted);
+  font-size: 0.73rem;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.point-select-row {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+}
+.point-select-row .field {
+  flex: 1;
+}

@@ -6,6 +6,7 @@ export default defineConfig({
   timeout: 90000,
   use: {
     baseURL: "http://127.0.0.1:5173",
+    actionTimeout: 20000,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     launchOptions: process.env.CHROME_BIN

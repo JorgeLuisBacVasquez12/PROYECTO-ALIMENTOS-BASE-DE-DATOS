@@ -1,0 +1,301 @@
+@media (min-width: 1600px) {
+  .main-content {
+    padding: 42px 48px;
+  }
+}
+@media (max-width: 1200px) {
+  .workspace {
+    grid-template-columns: 232px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding-inline: 13px;
+  }
+  .main-content {
+    padding-inline: 26px;
+  }
+  .overview-card {
+    padding: 19px;
+    gap: 12px;
+  }
+  .overview-icon {
+    width: 40px;
+    height: 42px;
+  }
+  .overview-card > svg {
+    display: none;
+  }
+  .journey-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filter-primary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .journey-detail > .section-title {
+    align-items: flex-start;
+  }
+  .journey-detail .actions .button {
+    font-size: 0.77rem;
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 900px) {
+  .workspace {
+    display: block;
+  }
+  .sidebar {
+    width: 252px;
+    left: -260px;
+    padding-inline: 20px;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .sidebar-note {
+    margin-top: 32px;
+  }
+  .topbar {
+    height: 72px;
+    gap: 14px;
+    padding-inline: 20px;
+  }
+  .breadcrumb {
+    margin-right: auto;
+    font-size: 0.76rem;
+    gap: 8px;
+  }
+  .today-label {
+    display: none;
+  }
+  .journey-picker {
+    margin-right: 0;
+  }
+  .main-content {
+    padding: 28px 22px;
+  }
+  .operator-context .point-label {
+    display: flex;
+  }
+}
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.85rem;
+  }
+  .main-content {
+    padding: 26px 16px;
+  }
+  .page-heading {
+    gap: 19px;
+  }
+  .page-heading .button {
+    width: 100%;
+  }
+  .overview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .overview-card {
+    display: block;
+    padding: 14px 11px;
+    border-radius: 12px;
+  }
+  .overview-icon {
+    width: 33px;
+    height: 33px;
+    margin-bottom: 12px;
+    border-radius: 9px;
+  }
+  .overview-icon svg {
+    width: 18px;
+  }
+  .overview-card > div > span {
+    display: block;
+    font-size: 0.64rem;
+    min-height: 30px;
+    line-height: 1.45;
+  }
+  .overview-card strong {
+    margin-top: 6px;
+    font-size: 1.55rem;
+  }
+  .journey-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .journey-card {
+    padding: 22px;
+  }
+  .segmented {
+    gap: 2px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .segmented button {
+    padding: 8px;
+    font-size: 0.67rem;
+  }
+  .journey-detail {
+    padding: 20px 17px;
+  }
+  .journey-detail .actions {
+    gap: 8px;
+  }
+  .setup-checks {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .setup-checks small {
+    margin-left: 0;
+  }
+  .assignment-section > .section-title .button {
+    width: 100%;
+  }
+  .inline-empty {
+    padding: 25px 15px;
+  }
+  .team-intro {
+    align-items: flex-start;
+  }
+  .inline-search {
+    width: 100%;
+  }
+  .inline-search input {
+    width: 100%;
+  }
+  .table-toolbar {
+    padding: 18px;
+  }
+  .filter-primary,
+  .filter-advanced,
+  .history-filters {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .filter-primary > .field:first-child,
+  .history-filters > .field:first-child {
+    grid-column: 1/-1;
+  }
+  .filter-primary > .button {
+    grid-column: 1/-1;
+  }
+  .filter-primary > .field:nth-child(3) {
+    min-width: 0;
+  }
+  .report-filters,
+  .history-filters {
+    padding: 18px;
+  }
+  .tabs {
+    gap: 22px;
+  }
+  .tabs button {
+    gap: 7px;
+    font-size: 0.75rem;
+    text-align: left;
+  }
+  .tabs button svg {
+    width: 16px;
+  }
+  .history-intro {
+    align-items: flex-start;
+  }
+  .dialog {
+    padding: 23px;
+  }
+  .dialog .actions .button {
+    flex: 1;
+    padding-inline: 12px;
+    font-size: 0.82rem;
+  }
+  .operator-workspace .topbar {
+    padding-inline: 17px;
+  }
+  .operator-workspace .topbar-right {
+    gap: 10px;
+  }
+  .operator-workspace .main-content {
+    padding: 30px 16px;
+  }
+  .operator-greeting h1 {
+    font-size: 2rem;
+  }
+  .operator-context {
+    flex-wrap: wrap;
+    gap: 13px;
+  }
+  .operator-context .journey-picker {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+  .operator-context .point-label {
+    display: flex;
+    flex: 1;
+  }
+  .operator-context > .button {
+    margin: 0;
+  }
+  .operator-search {
+    padding: 22px 18px;
+  }
+  .search-card-heading {
+    gap: 12px;
+    margin-bottom: 23px;
+  }
+  .search-card-heading h2 {
+    font-size: 0.99rem;
+  }
+  .search-card-heading .soft-icon {
+    width: 42px;
+    height: 44px;
+  }
+  .search-card-heading p {
+    font-size: 0.76rem;
+  }
+  .lookup-empty {
+    padding-inline: 5px;
+  }
+  .lookup-result {
+    padding: 19px;
+  }
+  .search-reassurance {
+    font-size: 0.67rem;
+  }
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    padding: 27px;
+  }
+  .auth-content {
+    padding: 38px 25px;
+  }
+  .brand-line {
+    font-size: 0.88rem;
+  }
+}
+
+.journey-picker {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: #6f8758;
+  min-width: 0;
+}
+.journey-picker > span {
+  flex: 1;
+  min-width: 0;
+}
+.journey-picker small {
+  display: block;
+  font-size: 0.69rem;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.journey-picker select {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 3px 0;
+}

@@ -75,6 +75,14 @@ describe("administrator access management", () => {
     expect(users.create).not.toHaveBeenCalled();
     expect(users.resetPassword).not.toHaveBeenCalled();
   });
+  it("creates only employee accounts from the administration screen API", async () => {
+    const response = await request("POST", "/api/users", {
+      ...payload(),
+      role: "admin",
+    });
+    expect(response.statusCode).toBe(400);
+    expect(users.create).not.toHaveBeenCalled();
+  });
   it("creates a normalized account, profile and assignment together", async () => {
     const r = await request("POST", "/api/users", {
       ...payload(" MixedCase@EXAMPLE.TEST "),

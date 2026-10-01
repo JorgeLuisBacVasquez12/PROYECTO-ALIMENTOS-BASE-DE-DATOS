@@ -17,10 +17,10 @@ Todas las rutas `/api` requieren `Authorization: Bearer <access_token>` emitido 
 | POST `/api/imports/:id/preview`      | Admin dueño de la carga     | Mapeo de columnas y jornada en borrador                          |
 | GET `/api/imports/:id/issues`        | Admin dueño de la carga     | Incidencias completas en JSON                                    |
 | POST `/api/imports/:id/commit`       | Admin dueño de la carga     | `{planId,skipInvalid}`                                           |
-| POST `/api/campaigns`                | Admin                       | `{name,benefit}`                                                 |
+| POST `/api/campaigns`                | Admin                       | `{name,benefit,rosterSourceId?}`                                 |
 | PATCH `/api/campaigns/:id/status`    | Admin                       | `{status:active/closed}`                                         |
 | GET `/api/campaigns/:id/assignments` | Admin                       | Personal y puntos                                                |
-| PUT `/api/campaigns/:id/assignments` | Admin                       | `{userId,pointId}`                                               |
+| PUT `/api/campaigns/:id/assignments` | Admin                       | `{userId,pointId}` o `{assignments:[{userId,pointId}]}`          |
 | GET/POST `/api/users`                | Admin                       | Listar/crear cuentas                                             |
 | PATCH `/api/users/:id`               | Admin                       | `{active:boolean}`                                               |
 | POST `/api/users/:id/password`       | Admin                       | `{password}`; restablece otra cuenta activa y registra auditoría |
@@ -38,15 +38,15 @@ No cambies `requestId` al reintentar una respuesta incierta. La API obtiene el p
 
 ## Mapeo
 
-`{campaignId,sheet,headerRow,dpiColumn,nameColumns}`. `headerRow` es 1-based; columnas 0-based. `nameColumns` permite hasta ocho columnas, en el orden de concatenación. El ID de vista previa y su revisión (`planId`) se devuelven desde el servidor y deben acompañar el commit.
+`{campaignId,sheet,headerRow,dpiColumn,nameColumns,sectorColumn?,ageColumn?}`. `headerRow` es 1-based; columnas 0-based. `nameColumns` permite hasta ocho columnas, en el orden de concatenación. El ID de vista previa y su revisión (`planId`) se devuelven desde el servidor y deben acompañar el commit.
 
 ## Filtros
 
-`q`, `status=all|delivered|pending`, `pointId`, `operatorId`, `from=YYYY-MM-DD`, `to=YYYY-MM-DD`, `page` y `pageSize` (máximo 100). Los rangos de días usan la zona horaria del backend y el límite superior incluye todo el día final. Los filtros se combinan con AND.
+`q`, `status=all|delivered|pending`, `pointId`, `operatorId`, `sector`, `ageMin`, `ageMax`, `from=YYYY-MM-DD`, `to=YYYY-MM-DD`, `page` y `pageSize` (máximo 100). Los rangos de días usan la zona horaria del backend y el límite superior incluye todo el día final. Los filtros se combinan con AND.
 
 ## Gestión de accesos
 
-`POST /api/users`: `{email,displayName,role,password,assignment?}`. La asignación opcional contiene `{campaignId,pointId}`. La transacción guarda perfil y asignación; si falla, se intenta eliminar únicamente la cuenta Auth recién creada. El correo se recorta y normaliza a minúsculas.
+`POST /api/users`: `{email,displayName,role,password,assignment?}`. El rol de alta es `operator`; el administrador inicial se prepara con los scripts de instalación. La asignación opcional contiene `{campaignId,pointId}`. La transacción guarda perfil y asignación; si falla, se intenta eliminar únicamente la cuenta Auth recién creada. El correo se recorta y normaliza a minúsculas.
 
 `GET /api/users` devuelve nombre, correo, rol, estado y las asignaciones a jornadas no cerradas. Solo lo puede consultar un administrador activo.
 
@@ -55,3 +55,17 @@ No cambies `requestId` al reintentar una respuesta incierta. La API obtiene el p
 `PATCH /api/users/:id` conserva historial y asignaciones. Cada solicitud a la API verifica el estado del perfil, de modo que un token previamente emitido no permite operar tras desactivar la cuenta. La interfaz detecta el bloqueo en su siguiente consulta o actualización periódica.
 
 La actualización de contraseñas en Supabase Auth y la confirmación de la transacción PostgreSQL son operaciones de dos servicios. Un fallo excepcional de conexión al confirmar puede dejar la contraseña cambiada sin confirmación en pantalla; en ese caso, vuelve a restablecerla y comprueba el acceso.
+
+## Jornadas y cierres
+
+`POST /api/campaigns/:id/shift/close`: cierra el turno del usuario autenticado; nunca toma el usuario del cuerpo. Es idempotente y guarda hora, punto y responsable. Una jornada debe estar activa. Tras cerrar, el empleado no puede consultar ni registrar nuevas entregas en ella.
+
+`PUT /api/campaigns/:id/assignments` acepta una asignación o un lote de hasta 100 usuarios distintos; todo el lote es transaccional. Asignar de nuevo limpia el cierre actual, conserva auditoría y reabre ese turno. Las referencias deben ser activas y la jornada no puede estar cerrada.
+
+`PATCH /api/campaigns/:id/status` requiere padrón y personal activo para habilitar. Finalizar cierra todos los turnos abiertos. Reabrir una jornada cerrada reabre sus turnos; no reinicia las entregas. Un cambio al estado actual es idempotente.
+
+`GET /api/campaigns/:id/report-options`: sectores disponibles del padrón; solo admin.
+
+`GET /api/history`: solo admin. Filtros `campaignId`, `kind=all|delivery|closure`, `q` (DPI/persona/responsable), `from`, `to`, `page`. Responde `{rows,total,page,pageSize:25}`. Incluye `delivery.register`, `delivery.void`, `shift.close` y `campaign.status` de cierre; nunca devuelve contraseñas.
+
+`GET /api/bootstrap` añade conteos por jornada y cierre propio/global. `GET /api/campaigns/:id/assignments` añade entregas por empleado, `assigned_at`, `closed_at` y `closed_by_name`.

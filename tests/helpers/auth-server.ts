@@ -14,6 +14,7 @@ export async function testAuthServer(db: Database) {
   ]) {
     accounts.set(id!, { email: email!, password: "Test-login-password-123" });
     await db.query("update auth.users set email=$2 where id=$1", [id, email]);
+    await db.query("update app.profiles set email=$2 where id=$1", [id, email]);
   }
   const user = (id: string) => ({
     id,

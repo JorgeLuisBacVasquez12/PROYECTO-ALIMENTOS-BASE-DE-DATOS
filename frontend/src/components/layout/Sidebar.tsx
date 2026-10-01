@@ -1,27 +1,24 @@
 import { NavLink } from "react-router-dom";
 import {
-  Landmark,
-  Search,
-  ChartNoAxesCombined,
-  Upload,
+  HandHeart,
   CalendarDays,
   Users,
-  History,
+  ChartNoAxesCombined,
   LogOut,
-  Settings,
+  ArrowUpRight,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { config } from "../../config/app";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { useAuth } from "../../hooks/useAuth";
 import { initials } from "../../lib/format";
 const links = [
-  { path: "/", key: "attention", icon: Search, admin: false },
-  { path: "/reports", key: "reports", icon: ChartNoAxesCombined, admin: true },
-  { path: "/import", key: "import", icon: Upload, admin: true },
-  { path: "/campaigns", key: "campaigns", icon: CalendarDays, admin: true },
-  { path: "/team", key: "team", icon: Users, admin: true },
-  { path: "/audit", key: "audit", icon: History, admin: true },
+  { path: "/", label: "Jornadas", icon: CalendarDays },
+  {
+    path: "/reports",
+    label: "Consultas e historial",
+    icon: ChartNoAxesCombined,
+  },
+  { path: "/team", label: "Empleados", icon: Users },
 ];
 export function Sidebar({
   open,
@@ -30,7 +27,6 @@ export function Sidebar({
   open: boolean;
   onNavigate: () => void;
 }) {
-  const { t } = useTranslation();
   const { profile } = useWorkspace();
   const { signOut } = useAuth();
   return (
@@ -40,48 +36,54 @@ export function Sidebar({
           {config.logo ? (
             <img src={config.logo} alt="" />
           ) : (
-            <Landmark size={25} />
+            <HandHeart size={26} />
           )}
         </span>
         <span>
           <strong>{config.shortName}</strong>
-          <small>{config.appName}</small>
+          <small>Entregas con propósito</small>
         </span>
       </div>
-      <div className="nav-label">{t("nav.operation")}</div>
-      <nav aria-label={config.appName}>
-        {links
-          .filter((link) => !link.admin || profile.role === "admin")
-          .map(({ path, key, icon: Icon }) => (
-            <NavLink
-              key={key}
-              to={path}
-              end={path === "/"}
-              onClick={onNavigate}
-              className={({ isActive }) => (isActive ? "selected" : "")}
-            >
-              <Icon size={19} />
-              {t(`nav.${key}`)}
-            </NavLink>
-          ))}
+      <div className="nav-label">ADMINISTRACIÓN</div>
+      <nav aria-label="Administración">
+        {links.map(({ path, label, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            end={path === "/"}
+            onClick={onNavigate}
+            className={({ isActive }) => (isActive ? "selected" : "")}
+          >
+            <Icon size={20} />
+            {label}
+          </NavLink>
+        ))}
       </nav>
+      <div className="sidebar-note">
+        <span className="note-mark">
+          <HandHeart size={23} />
+        </span>
+        <strong>Cada entrega cuenta.</strong>
+        <p>Personas, puntos y jornadas trabajando juntos.</p>
+        <span className="note-line" />
+      </div>
       <div className="sidebar-footer">
         <NavLink
           to="/account"
           className="user-profile"
           onClick={onNavigate}
-          aria-label={t("nav.account")}
+          aria-label="Mi cuenta"
         >
           <span className="avatar">{initials(profile.display_name)}</span>
           <span>
             <strong>{profile.display_name}</strong>
-            <small>{t(`common.${profile.role}`)}</small>
+            <small>Administrador</small>
           </span>
-          <Settings size={16} />
+          <ArrowUpRight size={16} />
         </NavLink>
         <button className="signout" onClick={() => void signOut()}>
-          <LogOut size={17} />
-          {t("common.signout")}
+          <LogOut size={16} />
+          Cerrar sesión
         </button>
       </div>
     </aside>

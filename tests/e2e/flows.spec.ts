@@ -33,27 +33,44 @@ async function login(page: Page, id: string) {
     .fill("prueba-solo-en-tests");
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
   await expect(
-    page.getByRole("heading", { name: "Consulta de beneficiarios" }),
+    page.getByRole("heading", {
+      name:
+        id === ids.admin ? "Jornadas de entrega" : "Consulta de beneficiarios",
+    }),
   ).toBeVisible();
 }
-test("two points query the same DPI and only one is authorized when both confirm", async ({
+async function lookup(page: Page, dpi: string) {
+  await page.getByLabel("DPI", { exact: true }).fill(dpi);
+  await page
+    .getByRole("button", { name: "Consultar DPI", exact: true })
+    .click();
+}
+async function prepareDelivery(page: Page) {
+  await page
+    .getByRole("button", { name: "Marcar como entregado", exact: true })
+    .click();
+  await page.getByLabel("Verifiqué el DPI y el nombre de la persona.").check();
+}
+async function noOverflow(page: Page) {
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+}
+
+test("two points confirm the same DPI and only one receives authorization", async ({
   browser,
 }) => {
   const a = await browser.newPage();
   const b = await browser.newPage();
   await Promise.all([login(a, ids.a), login(b, ids.b)]);
   for (const page of [a, b]) {
-    await page.getByLabel("DPI", { exact: true }).fill("9000000000004");
-    await page.getByRole("button", { name: "Consultar DPI" }).click();
+    await lookup(page, "9000000000004");
     await expect(
-      page.getByText("Disponible para entrega", { exact: true }),
+      page.getByText("Todo listo para la entrega", { exact: true }),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "Registrar entrega", exact: true })
-      .click();
-    await page
-      .getByLabel("Verifiqué el DPI y el nombre de la persona.")
-      .check();
+    await prepareDelivery(page);
   }
   await Promise.all([
     a.getByRole("button", { name: "Confirmar y registrar" }).click(),
@@ -62,8 +79,12 @@ test("two points query the same DPI and only one is authorized when both confirm
   await expect
     .poll(async () =>
       [
-        await a.getByText("Entrega registrada", { exact: true }).count(),
-        await b.getByText("Entrega registrada", { exact: true }).count(),
+        await a
+          .getByText("Entrega registrada con éxito", { exact: true })
+          .count(),
+        await b
+          .getByText("Entrega registrada con éxito", { exact: true })
+          .count(),
       ].reduce((x, y) => x + y),
     )
     .toBe(1);
@@ -78,37 +99,64 @@ test("two points query the same DPI and only one is authorized when both confirm
   await a.close();
   await b.close();
 });
-test("admin imports an unknown column arrangement, assigns a point and activates the new campaign", async ({
+
+test("admin imports flexible columns, assigns two employees, verifies delivery, queries and individual closure", async ({
   page,
+  browser,
 }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 1440, height: 1024 });
   await login(page, ids.admin);
-  await page.getByRole("link", { name: "Jornadas", exact: true }).click();
-  await page.getByRole("button", { name: "Nueva jornada" }).click();
   await page
-    .getByLabel("Nombre de la jornada")
-    .fill("Importación visual de prueba");
-  await page.getByLabel("Beneficio o porción").fill("Porción de prueba");
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Guardar" })
+    .getByRole("button", { name: "Nueva jornada", exact: true })
     .click();
-  const card = page
-    .locator(".campaign-card")
-    .filter({ hasText: "Importación visual de prueba" });
-  await card.getByRole("button", { name: "Seleccionar…", exact: true }).click();
-  await page.getByLabel("Persona del equipo").selectOption(ids.admin);
+  const dialog = page.getByRole("dialog");
+  await dialog
+    .getByLabel("Nombre de la jornada")
+    .fill("Entrega de pollo · Octubre");
+  await dialog.getByLabel("Alimento o beneficio").fill("Pollo");
+  await dialog
+    .getByRole("button", { name: "Crear jornada", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
   await page
-    .getByRole("combobox", { name: "Punto de entrega", exact: true })
-    .selectOption(ids.pointA);
-  await page.getByRole("button", { name: "Asignar personal" }).click();
+    .getByRole("button", { name: "Asignar empleados", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "Crear punto de entrega", exact: true })
+    .click();
+  const pointDialog = page.getByRole("dialog").filter({
+    has: page.getByRole("heading", {
+      name: "Nuevo punto de entrega",
+      exact: true,
+    }),
+  });
+  await pointDialog
+    .getByLabel("Nombre del punto")
+    .fill("Salón comunal · Sector Norte");
+  await pointDialog
+    .getByRole("button", { name: "Crear punto", exact: true })
+    .click();
+  await expect(pointDialog).not.toBeVisible();
   await expect(
-    page.locator("tbody").getByText("Administración de prueba"),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Importar padrón" }).click();
+    dialog.getByRole("combobox", { name: "Punto de entrega", exact: true }),
+  ).not.toHaveValue("");
+  await dialog.getByRole("checkbox", { name: /Operadora A de prueba/ }).check();
+  await dialog.getByRole("checkbox", { name: /Operador B de prueba/ }).check();
+  await dialog
+    .getByRole("button", { name: "Asignar 2 empleados", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Habilitar jornada", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("link", { name: "Cargar Excel", exact: true }).click();
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Hoja desconocida");
-  sheet.addRow(["Zona", "Apellido", "CUI", "Nombre"]);
-  sheet.addRow(["Centro", "Pérez", "0000000000999", "María José"]);
+  sheet.addRow(["Zona", "Apellido", "CUI", "Nombre", "Años"]);
+  sheet.addRow(["Norte", "Pérez", "0000000000999", "María José", 64]);
+  sheet.addRow(["Centro", "López", "0000000000998", "Juan", 28]);
   await page.locator("input[type=file]").setInputFiles({
     name: "prueba.xlsx",
     mimeType:
@@ -120,71 +168,165 @@ test("admin imports an unknown column arrangement, assigns a point and activates
     .selectOption("2");
   await page.getByLabel("4. Nombre", { exact: true }).check();
   await page.getByLabel("2. Apellido", { exact: true }).check();
+  await page.getByLabel("Columna de sector (opcional)").selectOption("0");
+  await page.getByLabel("Columna de edad (opcional)").selectOption("4");
   await page.getByRole("button", { name: "Revisar importación" }).click();
   await expect(
     page.getByText("María José Pérez", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Importar 1 personas" }).click();
+  await page.getByRole("button", { name: "Importar 2 personas" }).click();
   await expect(
     page.getByRole("heading", { name: "Padrón importado" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Jornadas", exact: true }).click();
-  const fresh = page
-    .locator(".campaign-card")
-    .filter({ hasText: "Importación visual de prueba" });
-  await fresh.getByRole("button", { name: "Activar jornada" }).click();
   await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Guardar" })
+    .getByRole("link", { name: "Volver a la jornada", exact: true })
     .click();
-  await expect(fresh.getByText("Activa", { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Atención", exact: true }).click();
-  await page.getByLabel("DPI", { exact: true }).fill("0000000000999");
-  await page.getByRole("button", { name: "Consultar DPI" }).click();
-  await expect(
-    page.getByRole("heading", { name: "María José Pérez" }),
-  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Habilitar jornada", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "Habilitar jornada", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  const card = page.getByRole("button", {
+    name: "Ver jornada Entrega de pollo · Octubre",
+    exact: true,
+  });
+  await expect(card.getByText("En curso", { exact: true })).toBeVisible();
+  // A second benefit reuses the roster, without carrying over any delivery.
+  await page
+    .getByRole("button", { name: "Nueva jornada", exact: true })
+    .click();
+  await dialog
+    .getByLabel("Nombre de la jornada")
+    .fill("Entrega de chocolate · Octubre");
+  await dialog.getByLabel("Alimento o beneficio").fill("Chocolate");
+  await dialog
+    .getByLabel("Padrón de beneficiarios")
+    .selectOption({ label: "Reutilizar padrón: Entrega de pollo · Octubre" });
+  await dialog
+    .getByRole("button", { name: "Crear jornada", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  await card.click();
+  await noOverflow(page);
   await page.screenshot({
-    path: "test-results/consulta-desktop.png",
+    path: "test-results/jornadas-desktop.png",
     fullPage: true,
   });
-});
-test("mobile layout, report export, unknown DPI and network state", async ({
-  page,
-  context,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await login(page, ids.admin);
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
-  await page.getByLabel("DPI", { exact: true }).fill("1111111111111");
-  await page.getByRole("button", { name: "Consultar DPI" }).click();
+  const operator = await browser.newPage();
+  await login(operator, ids.a);
   await expect(
-    page.getByText("No está en el padrón", { exact: true }),
+    operator.getByRole("link", { name: "Empleados", exact: true }),
+  ).toHaveCount(0);
+  await operator
+    .getByRole("combobox", { name: "Jornada", exact: true })
+    .selectOption({ label: "Entrega de pollo · Octubre" });
+  await lookup(operator, "0000000000999");
+  await expect(
+    operator.getByRole("heading", { name: "María José Pérez" }),
   ).toBeVisible();
-  await page.getByLabel("Abrir menú").click();
-  await page.getByRole("link", { name: "Reportes", exact: true }).click();
-  const downloaded = page.waitForEvent("download");
+  await prepareDelivery(operator);
+  await operator.screenshot({ path: "test-results/confirmacion-desktop.png" });
+  await operator.getByRole("button", { name: "Confirmar y registrar" }).click();
+  await expect(
+    operator.getByText("Entrega registrada con éxito", { exact: true }),
+  ).toBeVisible();
+  await operator
+    .getByRole("button", { name: "Cerrar jornada", exact: true })
+    .click();
+  await operator
+    .getByRole("dialog")
+    .getByRole("button", { name: "Finalizar mi jornada", exact: true })
+    .click();
+  await expect(
+    operator.getByRole("heading", { name: "Tu jornada ha finalizado" }),
+  ).toBeVisible();
+  await expect(operator.getByLabel("DPI", { exact: true })).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Consultas e historial", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Sector", exact: true })
+    .selectOption("Norte");
+  await page
+    .getByRole("button", { name: "Edad, empleado y fechas", exact: true })
+    .click();
+  await page.getByLabel("Edad desde").fill("60");
+  await page.getByLabel("Edad hasta").fill("70");
+  await page.getByRole("button", { name: "Consultar", exact: true }).click();
+  await expect(
+    page.getByRole("row").filter({ hasText: "María José Pérez" }),
+  ).toContainText("64 años");
+  await expect(
+    page.getByRole("row").filter({ hasText: "Juan López" }),
+  ).toHaveCount(0);
+  const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Exportar Excel" }).click();
-  expect((await downloaded).suggestedFilename()).toBe("entregas.xlsx");
+  expect((await download).suggestedFilename()).toBe("entregas.xlsx");
   await page.screenshot({
-    path: "test-results/reporte-mobile.png",
+    path: "test-results/consultas-desktop.png",
     fullPage: true,
   });
-  await page.getByLabel("Abrir menú").click();
-  await page.getByRole("link", { name: "Atención", exact: true }).click();
-  await context.setOffline(true);
+  await page.getByRole("button", { name: "Limpiar", exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "Entrega", exact: true })
+    .selectOption("pending");
+  await page.getByRole("button", { name: "Consultar", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Consultar DPI" }),
-  ).toBeDisabled();
+    page.getByRole("row").filter({ hasText: "Juan López" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "María José Pérez" }),
+  ).toHaveCount(0);
+  await page.getByRole("tab", { name: "Historial de movimientos" }).click();
   await expect(
     page
-      .getByRole("main")
-      .getByRole("status")
-      .getByText("Sin conexión. No se pueden confirmar entregas."),
+      .getByRole("row")
+      .filter({ hasText: "Entrega registrada" })
+      .filter({ hasText: "María José Pérez" }),
   ).toBeVisible();
-  await context.setOffline(false);
+  await expect(
+    page
+      .getByRole("row")
+      .filter({ hasText: "Turno cerrado" })
+      .filter({ hasText: "Operadora A de prueba" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/historial-desktop.png",
+    fullPage: true,
+  });
+  const other = await browser.newPage();
+  await login(other, ids.b);
+  await other
+    .getByRole("combobox", { name: "Jornada", exact: true })
+    .selectOption({ label: "Entrega de pollo · Octubre" });
+  await lookup(other, "0000000000999");
+  await expect(
+    other.getByText("Esta persona ya recibió", { exact: true }),
+  ).toBeVisible();
+  await other.setViewportSize({ width: 390, height: 844 });
+  await lookup(other, "1111111111111");
+  await expect(
+    other.getByText("No encontramos este DPI", { exact: true }),
+  ).toBeVisible();
+  await noOverflow(other);
+  await other.screenshot({
+    path: "test-results/registro-mobile.png",
+    fullPage: true,
+  });
+  await other.context().setOffline(true);
+  await expect(
+    other.getByRole("button", { name: "Consultar DPI" }),
+  ).toBeDisabled();
+  await other.context().setOffline(false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page);
+  await page.screenshot({
+    path: "test-results/historial-mobile.png",
+    fullPage: true,
+  });
+  expect(errors).toEqual([]);
+  await operator.close();
+  await other.close();
 });

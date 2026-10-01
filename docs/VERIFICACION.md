@@ -31,10 +31,17 @@ La suite de Vitest usa una base PostgreSQL embebida y verifica, entre otros caso
 - contraseñas de PostgreSQL con caracteres especiales en la URL de conexión;
 - disponibilidad de `admin:repair` desde raíz, frontend y backend, con la misma configuración y propagación de errores;
 - selección de archivos del frontend por modo, prioridad de variables de terminal y rechazo de proyectos Supabase distintos.
+- reutilización de padrón sin copiar entregas y validación antes de habilitar;
+- asignación transaccional de varios empleados y reversión completa ante referencias inválidas;
+- cierre individual idempotente, continuidad del resto del equipo y reapertura sin perder duplicados;
+- cierre global, autor y timestamp, historial de entregas/cierres y límites de consulta para empleados;
+- filtros de sector/edad/recibieron/pendientes y conservación de edades inválidas únicamente en datos originales;
+- actualización de un esquema existente y operaciones HTTP con un rol privado sin acceso a `auth.users`, con RLS activo;
+- carrera entre cierre de turno y registro de entrega, además de las 30 confirmaciones concurrentes.
 
-En esta revisión pasaron **44 pruebas de Vitest**, **5 recorridos de Playwright**, la comprobación de tipos y la compilación de frontend y backend. Incluyen recuperación del administrador, verificación del perfil activo, restricciones de perfiles, creación con asignación, restablecimiento y revocación de accesos. No se modificó el Supabase real del usuario; `pnpm admin:repair` ejecuta y verifica la reparación en ese proyecto al correrlo con su configuración.
+En esta revisión pasaron **54 pruebas de Vitest**, **4 recorridos de Playwright**, la comprobación de tipos y la compilación de frontend y backend. Incluyen recuperación del administrador, verificación del perfil activo, restricciones de perfiles, creación con asignación, restablecimiento y revocación de accesos. Esta actualización se comprobó con datos aislados. Su migración todavía debe aplicarse al Supabase de la instalación según EMPEZAR_AQUI.md antes de iniciar el backend nuevo.
 
-La suite de Playwright levanta el frontend y un backend de prueba. Recorre la búsqueda en dos puntos, la importación administrativa y la vista móvil. El recorrido de accesos crea un operador, inicia sesión, restablece la contraseña, rechaza la anterior, cambia la contraseña desde Mi cuenta, reasigna el punto, bloquea una sesión abierta y reactiva el acceso. El recorrido del login muestra y oculta la contraseña con ratón y teclado, comprueba que el ojo no envíe el formulario ni altere la contraseña, revisa la vista móvil e inicia sesión. Se usa un doble HTTP de Supabase Auth que valida credenciales y una base PostgreSQL embebida: no se valida aquí el servicio remoto de Auth ni el canal Realtime de producción. Los datos son ficticios y no sustituyen una prueba contra el Supabase de producción.
+La suite de Playwright levanta el frontend y un backend de prueba. Recorre la búsqueda y confirmación simultánea en dos puntos. Crea una jornada, un nuevo punto y asigna dos empleados, importa sector/edad desde columnas variables, habilita, reutiliza el padrón en otra jornada, entrega, cierra un turno y consulta filtros, exportación e historial. Verifica que otro empleado continúe y que el mensaje de DPI no encontrado funcione en móvil sin desbordamiento. El recorrido de accesos crea un operador, inicia sesión, restablece la contraseña, rechaza la anterior, cambia la contraseña desde Mi cuenta, reasigna el punto, bloquea una sesión abierta y reactiva el acceso. El recorrido del login muestra y oculta la contraseña con ratón y teclado, comprueba que el ojo no envíe el formulario ni altere la contraseña, revisa la vista móvil e inicia sesión. Se usa un doble HTTP de Supabase Auth que valida credenciales y una base PostgreSQL embebida: no se valida aquí el servicio remoto de Auth ni el canal Realtime de producción. Los datos son ficticios y no sustituyen una prueba contra el Supabase de producción.
 
 ## Prueba de aceptación con Supabase
 
@@ -53,3 +60,9 @@ Después de configurar los `.env` y aplicar las migraciones:
 ## Criterio de salida
 
 La instalación está lista para una jornada real cuando pasan las comprobaciones automatizadas, la prueba concurrente y la exportación, y el administrador confirma que las cuentas, puntos, zona horaria, origen permitido y dominio publicados son los definitivos. Cada jornada real debe tener su propio padrón y no se deben reutilizar datos de ensayo.
+
+## Revisión visual de esta versión
+
+Se inspeccionaron capturas de Jornadas, Empleados, Consultas e historial, confirmación de entrega, login y registro móvil. Las capturas se obtienen de la aplicación funcionando con el servidor HTTP y PostgreSQL de pruebas, no de un boceto ni de respuestas API prefabricadas. Los movimientos, nombres y DPIs son ficticios.
+
+El ejecutable `agent-browser` no pudo iniciar su daemon en este entorno después de dos intentos; la verificación visual y funcional se completó con Playwright/Chromium. Las capturas de los recorridos se guardan en `test-results/`, excluido de Git. Un fallo inicial de selectores exactos de etiquetas se corrigió usando el nombre accesible del combobox; no se eliminaron las verificaciones de asignación o filtros.

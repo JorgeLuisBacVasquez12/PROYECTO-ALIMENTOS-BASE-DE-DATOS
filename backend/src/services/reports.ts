@@ -12,13 +12,20 @@ export const reportSchema = z
     status: z.enum(["all", "delivered", "pending"]).default("all"),
     pointId: uuid.optional(),
     operatorId: uuid.optional(),
+    sector: z.string().trim().max(200).optional(),
+    ageMin: z.coerce.number().int().min(0).max(120).optional(),
+    ageMax: z.coerce.number().int().min(0).max(120).optional(),
     from: z.iso.date().optional(),
     to: z.iso.date().optional(),
     page: z.coerce.number().int().min(1).max(100000).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(25),
   })
   .strict()
-  .refine((v) => !v.from || !v.to || v.from <= v.to);
+  .refine((v) => !v.from || !v.to || v.from <= v.to)
+  .refine(
+    (v) =>
+      v.ageMin === undefined || v.ageMax === undefined || v.ageMin <= v.ageMax,
+  );
 export type ReportFilters = z.infer<typeof reportSchema>;
 export async function getStats(db: Executor, id: string): Promise<Stats> {
   const r = await db.query(
@@ -50,6 +57,9 @@ export async function getReport(
     if (f.status === "pending") conditions.push("d.id is null");
     if (f.pointId) conditions.push(`d.point_id=${bind(f.pointId)}`);
     if (f.operatorId) conditions.push(`d.operator_id=${bind(f.operatorId)}`);
+    if (f.sector) conditions.push(`cp.sector=${bind(f.sector)}`);
+    if (f.ageMin !== undefined) conditions.push(`cp.age>=${bind(f.ageMin)}`);
+    if (f.ageMax !== undefined) conditions.push(`cp.age<=${bind(f.ageMax)}`);
     if (f.from)
       conditions.push(
         `d.delivered_at>=(${bind(f.from)}::date::timestamp at time zone ${bind(timezone)})`,
@@ -64,7 +74,7 @@ export async function getReport(
     const pageSize = exportLimit ?? f.pageSize;
     const rows = (
       await tx.query<ReportRow>(
-        `select p.id,p.dpi,cp.full_name,cp.extra,d.id delivery_id,d.point_name,d.operator_name,d.delivered_at ${base} order by cp.full_name,p.id limit ${bind(pageSize)} offset ${bind(exportLimit ? 0 : (f.page - 1) * pageSize)}`,
+        `select p.id,p.dpi,cp.full_name,cp.extra,cp.sector,cp.age,d.id delivery_id,d.point_name,d.operator_name,d.delivered_at ${base} order by cp.full_name,p.id limit ${bind(pageSize)} offset ${bind(exportLimit ? 0 : (f.page - 1) * pageSize)}`,
         params,
       )
     ).rows;

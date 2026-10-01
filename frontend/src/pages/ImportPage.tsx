@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { CampaignPicker } from "../components/ui/CampaignPicker";
 import { CheckCircle2 } from "lucide-react";
 import { useWorkspace } from "../hooks/useWorkspace";
 import { useImport } from "../hooks/useImport";
@@ -17,7 +19,14 @@ function ImportSurface({ id }: { id: string }) {
         <CheckCircle2 size={48} className="success-icon" />
         <h2>{t("import.success")}</h2>
         <p>{t("import.successDetail", { ...state.commitAction.data })}</p>
-        <Button onClick={state.reset}>{t("import.another")}</Button>
+        <div className="actions centered">
+          <Link className="button primary" to="/">
+            Volver a la jornada
+          </Link>
+          <Button variant="secondary" onClick={state.reset}>
+            {t("import.another")}
+          </Button>
+        </div>
       </section>
     );
   return (
@@ -69,7 +78,11 @@ export default function ImportPage() {
   const { campaign } = useWorkspace();
   return (
     <div className="stack">
+      <Link className="back-link" to="/">
+        ← Volver a jornadas
+      </Link>
       <PageHeader title={t("import.title")} subtitle={t("import.subtitle")} />
+      <CampaignPicker />
       {campaign?.status === "draft" ? (
         <ImportSurface key={campaign.id} id={campaign.id} />
       ) : (

@@ -1,0 +1,9 @@
+@import "./operations/theme.css";
+@import "./operations/layout.css";
+@import "./operations/jornadas.css";
+@import "./operations/team.css";
+@import "./operations/forms.css";
+@import "./operations/reports.css";
+@import "./operations/operator.css";
+@import "./operations/login.css";
+@import "./operations/responsive.css";

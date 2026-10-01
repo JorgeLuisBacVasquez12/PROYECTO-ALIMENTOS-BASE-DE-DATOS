@@ -1,151 +1,159 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, MapPin } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import {
+  Plus,
+  Search,
+  Users,
+  KeyRound,
+  UserRoundCheck,
+  UserRoundX,
+} from "lucide-react";
 import type { Profile, TeamUser } from "@mazate/contracts";
-import { api, post } from "../lib/api";
-import { useWorkspace } from "../hooks/useWorkspace";
+import { api } from "../lib/api";
 import { useMutationAction } from "../hooks/useMutationAction";
-import { PageHeader, ErrorNotice, Notice } from "../components/ui/Feedback";
-import { Input } from "../components/ui/Field";
+import {
+  PageHeader,
+  ErrorNotice,
+  Notice,
+  Loading,
+} from "../components/ui/Feedback";
 import { Button } from "../components/ui/Button";
 import { Dialog } from "../components/ui/Dialog";
 import { CreateUser } from "../features/admin/CreateUser";
 import { ResetPassword } from "../features/admin/ResetPassword";
-import { AssignUser } from "../features/admin/AssignUser";
+import { initials } from "../lib/format";
 export default function TeamPage() {
-  const { t } = useTranslation();
-  const { points, profile } = useWorkspace();
-  const [userOpen, setUserOpen] = useState(false);
-  const [pointOpen, setPointOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState("");
+  const [search, setSearch] = useState("");
   const [passwordTarget, setPasswordTarget] = useState<TeamUser | null>(null);
-  const [assignmentTarget, setAssignmentTarget] = useState<TeamUser | null>(
-    null,
-  );
   const [target, setTarget] = useState<Profile | null>(null);
   const users = useQuery({
     queryKey: ["users"],
     queryFn: () => api<TeamUser[]>("/users"),
   });
-  const point = useMutationAction(
-    (name: string) => post("/points", { name }),
-    ["bootstrap"],
-  );
   const status = useMutationAction(
-    (user: Profile) =>
-      api(`/users/${user.id}`, {
+    (u: Profile) =>
+      api(`/users/${u.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ active: !user.active }),
+        body: JSON.stringify({ active: !u.active }),
       }),
-    ["users"],
+    ["users", "bootstrap", "assignments"],
   );
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    try {
-      await point.mutateAsync(
-        String(new FormData(event.currentTarget).get("name")),
-      );
-      setPointOpen(false);
-    } catch {
-      /* Rendered below. */
-    }
-  }
+  const employees = users.data?.filter((u) => u.role === "operator") ?? [];
+  const visible = employees.filter((u) =>
+    `${u.display_name} ${u.email ?? ""}`
+      .toLocaleLowerCase()
+      .includes(search.toLocaleLowerCase()),
+  );
   return (
     <div className="stack">
-      <PageHeader title={t("team.title")} subtitle={t("team.subtitle")} />
-      {message ? <Notice tone="success">{t(message)}</Notice> : null}
-      <section className="panel stack">
-        <div className="section-title">
-          <h2>{t("team.points")}</h2>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              point.reset();
-              setPointOpen(true);
-            }}
-          >
-            <Plus size={17} />
-            {t("team.newPoint")}
+      <PageHeader
+        title="Tu equipo"
+        subtitle="Crea sus accesos. Ellos se encargan de cada entrega."
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <Plus size={18} />
+            Nuevo empleado
           </Button>
+        }
+      />
+      {message && <Notice tone="success">{message}</Notice>}
+      <div className="team-intro">
+        <span className="soft-icon">
+          <Users size={25} />
+        </span>
+        <div>
+          <strong>
+            {employees.filter((u) => u.active).length} empleados activos
+          </strong>
+          <p>
+            Sus accesos permiten buscar DPI y registrar entregas en las jornadas
+            que les asignes.
+          </p>
         </div>
-        <div className="point-list">
-          {points.map((p) => (
-            <div className="point-item" key={p.id}>
-              <MapPin size={20} />
-              <strong>{p.name}</strong>
-            </div>
-          ))}
-        </div>
-        {!points.length ? <p className="muted">{t("common.empty")}</p> : null}
-      </section>
+      </div>
       <section className="panel table-panel">
         <div className="table-toolbar">
-          <h2>{t("team.users")}</h2>
-          <Button onClick={() => setUserOpen(true)}>
-            <Plus size={17} />
-            {t("team.newUser")}
-          </Button>
+          <h2>
+            Empleados <span className="count-chip">{employees.length}</span>
+          </h2>
+          <label className="inline-search">
+            <Search size={17} />
+            <input
+              aria-label="Buscar empleado"
+              placeholder="Buscar nombre o correo"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
         </div>
         <ErrorNotice error={users.error} />
-        <div
-          className="table-scroll"
-          tabIndex={0}
-          role="region"
-          aria-label={t("team.users")}
-        >
-          <table className="team-table">
-            <thead>
-              <tr>
-                {["name", "role", "point", "status", "actions"].map((key) => (
-                  <th key={key}>{t(`common.${key}`)}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {users.data?.map((u) => (
-                <tr key={u.id}>
-                  <td className="name-cell">
-                    <strong>{u.display_name}</strong>
-                    <div className="muted">{u.email ?? "—"}</div>
-                  </td>
-                  <td>{t(`common.${u.role}`)}</td>
-                  <td>
-                    {u.assignments.length
-                      ? u.assignments.map((a) => (
-                          <div key={a.campaign_id}>
-                            <strong>{a.point_name}</strong>
-                            <div className="muted">{a.campaign_name}</div>
+        {users.isPending ? (
+          <Loading />
+        ) : visible.length ? (
+          <div
+            className="table-scroll"
+            tabIndex={0}
+            role="region"
+            aria-label="Empleados"
+          >
+            <table className="team-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Jornadas asignadas</th>
+                  <th>Acceso</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div className="table-person">
+                        <span className="avatar light">
+                          {initials(u.display_name)}
+                        </span>
+                        <div>
+                          <strong>{u.display_name}</strong>
+                          <small className="cell-secondary">
+                            {u.email ?? "Sin correo registrado"}
+                          </small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {u.assignments.length ? (
+                        u.assignments.map((a) => (
+                          <div key={a.campaign_id} className="assignment-label">
+                            <strong>{a.campaign_name}</strong>
+                            <small>{a.point_name}</small>
                           </div>
                         ))
-                      : t("team.unassigned")}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${u.active ? "success" : "neutral"}`}
-                    >
-                      {t(`common.${u.active ? "active" : "inactive"}`)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="team-actions">
-                      {u.active ? (
-                        <Button
-                          variant="ghost"
-                          onClick={() => setAssignmentTarget(u)}
-                        >
-                          {t("team.assignPoint")}
-                        </Button>
-                      ) : null}
-                      {u.active && u.id !== profile.id ? (
-                        <Button
-                          variant="ghost"
-                          onClick={() => setPasswordTarget(u)}
-                        >
-                          {t("team.resetPassword")}
-                        </Button>
-                      ) : null}
-                      {u.id !== profile.id ? (
+                      ) : (
+                        <span className="muted">Pendiente de asignar</span>
+                      )}
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${u.active ? "success" : "neutral"}`}
+                      >
+                        <i className="status-dot" />
+                        {u.active ? "Activo" : "Desactivado"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="team-actions">
+                        {u.active && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => setPasswordTarget(u)}
+                          >
+                            <KeyRound size={15} />
+                            Contraseña
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           onClick={() => {
@@ -153,82 +161,112 @@ export default function TeamPage() {
                             setTarget(u);
                           }}
                         >
-                          {t(u.active ? "team.disable" : "team.enable")}
+                          {u.active ? (
+                            <UserRoundX size={15} />
+                          ) : (
+                            <UserRoundCheck size={15} />
+                          )}{" "}
+                          {u.active ? "Desactivar" : "Activar"}
                         </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <span className="empty-orbit">
+              <Users size={35} />
+            </span>
+            <h2>
+              {search
+                ? "No encontramos ese empleado"
+                : "Un buen equipo comienza contigo"}
+            </h2>
+            <p>
+              {search
+                ? "Prueba con otro nombre o correo."
+                : "Crea el primer acceso con nombre, correo y contraseña. Después podrás asignarlo a una jornada."}
+            </p>
+            {!search && (
+              <Button onClick={() => setCreating(true)}>
+                Crear primer empleado
+              </Button>
+            )}
+          </div>
+        )}
       </section>
-      {userOpen ? (
+      {creating && (
         <CreateUser
-          open={userOpen}
-          onClose={() => setUserOpen(false)}
-          onCreated={() => setMessage("team.userCreated")}
+          open
+          onClose={() => setCreating(false)}
+          onCreated={() =>
+            setMessage(
+              "Acceso creado. El empleado ya puede iniciar sesión con los datos que configuraste.",
+            )
+          }
         />
-      ) : null}
-      {passwordTarget ? (
+      )}
+      <p className="muted small">
+        Asigna empleados y puntos de atención desde el detalle de cada jornada.
+      </p>
+      {passwordTarget && (
         <ResetPassword
           user={passwordTarget}
           onClose={() => setPasswordTarget(null)}
-          onSaved={() => setMessage("team.passwordSaved")}
+          onSaved={() =>
+            setMessage(
+              "Contraseña actualizada. Comparte la nueva contraseña con el empleado.",
+            )
+          }
         />
-      ) : null}
-      {assignmentTarget ? (
-        <AssignUser
-          user={assignmentTarget}
-          onClose={() => setAssignmentTarget(null)}
-          onSaved={() => setMessage("team.assignmentSaved")}
-        />
-      ) : null}
-      <Dialog
-        open={pointOpen}
-        title={t("team.newPoint")}
-        onClose={() => {
-          if (!point.isPending) setPointOpen(false);
-        }}
-      >
-        <form onSubmit={submit} className="stack">
-          <Input
-            label={t("common.name")}
-            name="name"
-            minLength={2}
-            maxLength={100}
-            required
-          />
-          <ErrorNotice error={point.error} />
-          <Button busy={point.isPending}>{t("common.save")}</Button>
-        </form>
-      </Dialog>
+      )}
       <Dialog
         open={!!target}
-        title={t("team.confirmStatus")}
+        title={
+          target?.active ? "¿Desactivar este acceso?" : "¿Activar este acceso?"
+        }
         onClose={() => {
           if (!status.isPending) setTarget(null);
         }}
       >
         <div className="stack">
-          <strong>{target?.display_name}</strong>
+          <div className="confirmation-hero">
+            <Users size={32} />
+            <h3>{target?.display_name}</h3>
+            <p>
+              {target?.active
+                ? "Ya no podrá consultar ni registrar entregas. Su historial se conservará."
+                : "Podrá volver a entrar y atender en sus jornadas habilitadas."}
+            </p>
+          </div>
           <ErrorNotice error={status.error} />
-          <Button
-            busy={status.isPending}
-            onClick={() => {
-              if (target)
-                void status
-                  .mutateAsync(target)
-                  .then(() => {
-                    setMessage("team.statusSaved");
-                    setTarget(null);
-                  })
-                  .catch(() => {});
-            }}
-          >
-            {t("common.save")}
-          </Button>
+          <div className="actions end">
+            <Button
+              variant="secondary"
+              onClick={() => setTarget(null)}
+              disabled={status.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              busy={status.isPending}
+              onClick={() => {
+                if (target)
+                  void status
+                    .mutateAsync(target)
+                    .then(() => {
+                      setMessage("Estado del acceso actualizado.");
+                      setTarget(null);
+                    })
+                    .catch(() => {});
+              }}
+            >
+              Confirmar cambio
+            </Button>
+          </div>
         </div>
       </Dialog>
     </div>

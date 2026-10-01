@@ -12,6 +12,18 @@ export function reportRoutes(
   db: Database,
   config: Config,
 ) {
+  app.get("/api/campaigns/:id/report-options", async (request) => {
+    requireAdmin(request.profile);
+    const id = uuid.parse((request.params as { id: string }).id);
+    return {
+      sectors: (
+        await db.query(
+          "select distinct sector from app.campaign_people where campaign_id=$1 and sector is not null order by sector",
+          [id],
+        )
+      ).rows.map((r) => r.sector),
+    };
+  });
   app.get("/api/campaigns/:id/stats", async (request) => {
     const id = uuid.parse((request.params as { id: string }).id);
     await assertCampaign(db, request.profile, id);
@@ -50,6 +62,8 @@ export function reportRoutes(
       sheet.addRow([
         "DPI",
         "Nombre",
+        "Sector",
+        "Edad según padrón",
         "Estado",
         "Fecha y hora",
         "Punto",
@@ -65,6 +79,8 @@ export function reportRoutes(
         sheet.addRow([
           row.dpi,
           row.full_name,
+          row.sector ?? "",
+          row.age ?? "",
           row.delivery_id ? "Entregado" : "Pendiente",
           row.delivered_at ? format.format(new Date(row.delivered_at)) : "",
           row.point_name ?? "",

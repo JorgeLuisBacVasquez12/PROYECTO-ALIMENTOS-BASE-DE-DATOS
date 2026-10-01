@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { Download, Users, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Report, ReportRow } from "@mazate/contracts";
 import { useWorkspace } from "../hooks/useWorkspace";
@@ -17,6 +17,8 @@ import { Button } from "../components/ui/Button";
 import { Dialog } from "../components/ui/Dialog";
 import { ReportFilters } from "../features/reports/ReportFilters";
 import { ReportTable } from "../features/reports/ReportTable";
+import { CampaignPicker } from "../components/ui/CampaignPicker";
+import { HistoryView } from "../features/reports/HistoryView";
 import { StatsCards } from "../features/lookup/StatsCards";
 function ReportSurface({ id }: { id: string }) {
   const { t } = useTranslation();
@@ -41,7 +43,16 @@ function ReportSurface({ id }: { id: string }) {
   const voider = useMutationAction(
     async (reason: string) =>
       post(`/deliveries/${selected!.delivery_id}/void`, { reason }),
-    ["report", "stats", "activity", "lookup", "audit"],
+    [
+      "report",
+      "stats",
+      "activity",
+      "lookup",
+      "audit",
+      "history",
+      "bootstrap",
+      "assignments",
+    ],
   );
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,6 +68,7 @@ function ReportSurface({ id }: { id: string }) {
     <>
       <StatsCards campaignId={id} />
       <ReportFilters
+        campaignId={id}
         onChange={(value) => {
           setFilters(value);
           setPage(1);
@@ -141,14 +153,77 @@ function ReportSurface({ id }: { id: string }) {
 export default function ReportsPage() {
   const { t } = useTranslation();
   const { campaign } = useWorkspace();
+  const [tab, setTab] = useState<"people" | "history">("people");
   return (
     <div className="stack">
-      <PageHeader title={t("reports.title")} subtitle={t("reports.subtitle")} />
-      {campaign ? (
-        <ReportSurface key={campaign.id} id={campaign.id} />
-      ) : (
-        <Notice>{t("lookup.noCampaign")}</Notice>
-      )}
+      <PageHeader
+        title="Consultas e historial"
+        subtitle="La información que necesitas, con cada entrega en su lugar."
+      />
+      <div
+        className="tabs"
+        role="tablist"
+        aria-label="Tipo de consulta"
+        onKeyDown={(event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+            return;
+          event.preventDefault();
+          const next =
+            event.key === "Home"
+              ? "people"
+              : event.key === "End"
+                ? "history"
+                : tab === "people"
+                  ? "history"
+                  : "people";
+          setTab(next);
+          event.currentTarget
+            .querySelector<HTMLButtonElement>(`#${next}-tab`)
+            ?.focus();
+        }}
+      >
+        <button
+          id="people-tab"
+          role="tab"
+          aria-selected={tab === "people"}
+          tabIndex={tab === "people" ? 0 : -1}
+          aria-controls="report-content"
+          onClick={() => setTab("people")}
+        >
+          <Users size={18} />
+          Personas y entregas
+        </button>
+        <button
+          id="history-tab"
+          role="tab"
+          aria-selected={tab === "history"}
+          tabIndex={tab === "history" ? 0 : -1}
+          aria-controls="report-content"
+          onClick={() => setTab("history")}
+        >
+          <History size={18} />
+          Historial de movimientos
+        </button>
+      </div>
+      <div
+        id="report-content"
+        role="tabpanel"
+        aria-labelledby={`${tab}-tab`}
+        className="stack"
+      >
+        {tab === "history" ? (
+          <HistoryView />
+        ) : (
+          <>
+            <CampaignPicker />
+            {campaign ? (
+              <ReportSurface key={campaign.id} id={campaign.id} />
+            ) : (
+              <Notice>{t("lookup.noCampaign")}</Notice>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

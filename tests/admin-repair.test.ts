@@ -33,6 +33,7 @@ async function fixture(
       [id, input.displayName, profile.role, profile.active],
     );
   const auth = {
+    find: vi.fn(async () => (account ? { id, email: input.email } : null)),
     create: vi.fn(async () => {
       await db.query("insert into auth.users(id,email) values($1,$2)", [
         id,

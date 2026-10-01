@@ -58,6 +58,9 @@ export function LookupResult({
             <span>{t("common.person")}</span>
             <h3>{result.person.full_name}</h3>
             <p className="dpi-text">{result.person.dpi}</p>
+            {result.person.sector ? (
+              <p className="person-sector">{result.person.sector}</p>
+            ) : null}
           </div>
         </div>
       ) : null}

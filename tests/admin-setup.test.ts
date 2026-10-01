@@ -26,6 +26,7 @@ describe("administrator setup", () => {
     expect(await migrateDatabase(database.db)).toEqual([
       "001_schema.sql",
       "002_delivery.sql",
+      "20260930215449_jornadas_operacion.sql",
     ]);
     expect(await migrateDatabase(database.db)).toEqual([]);
     const auth = {
